@@ -294,7 +294,7 @@ class FetchData:
                         agora_br = datetime.now(ZoneInfo("America/Sao_Paulo"))
                         diff = (agora_br - timestamp_br).total_seconds()
 
-                        if diff >= 5 * 60:
+                        if diff >= 10 * 60:
                             self.delete(i["git_url"])
             except Exception:
                 pass
