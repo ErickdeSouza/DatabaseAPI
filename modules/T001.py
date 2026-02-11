@@ -294,7 +294,7 @@ class FetchData:
 ***REMOVED******REMOVED******REMOVED***agora_br = datetime.now(ZoneInfo("America/Sao_Paulo"))
 ***REMOVED******REMOVED******REMOVED***diff = (agora_br - timestamp_br).total_seconds()
 
-***REMOVED******REMOVED******REMOVED***if diff >= 5 * 60:
+***REMOVED******REMOVED******REMOVED***if diff >= 10 * 60:
 ***REMOVED******REMOVED******REMOVED******REMOVED***self.delete(i["git_url"])
 ***REMOVED******REMOVED***except Exception:
 ***REMOVED******REMOVED***pass
