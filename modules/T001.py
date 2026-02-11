@@ -269,7 +269,21 @@ class FetchData:
 ***REMOVED******REMOVED***""", (Json({"data": data}), "2b66698d-4995-410a-9a7d-3a462b25e323")
 ***REMOVED***
 ***REMOVED***self.conn.commit()
-
+***REMOVED***
+***REMOVED***def upcontainer(self, git):
+***REMOVED***try:
+***REMOVED******REMOVED***cur = self.conn.cursor()
+***REMOVED******REMOVED***cur.execute("""
+***REMOVED******REMOVED***UPDATE accounts
+***REMOVED******REMOVED***SET heartbeat = NOW() AT TIME ZONE 'America/Sao_Paulo'
+***REMOVED******REMOVED***WHERE git_url = %s
+***REMOVED******REMOVED***""", (git,))
+***REMOVED******REMOVED***self.conn.commit()
+***REMOVED******REMOVED***
+***REMOVED******REMOVED***return {"ok": True}
+***REMOVED***except Exception as e:
+***REMOVED******REMOVED***return {"ok": False, "error": f"Retornou o erro: {str(e)}"}
+***REMOVED***
 ***REMOVED***def verifVm(self):
 ***REMOVED***while True:
 ***REMOVED******REMOVED***try:
