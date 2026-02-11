@@ -269,7 +269,21 @@ class FetchData:
             """, (Json({"data": data}), "2b66698d-4995-410a-9a7d-3a462b25e323")
         )
         self.conn.commit()
-
+    
+    def upcontainer(self, git):
+        try:
+            cur = self.conn.cursor()
+            cur.execute("""
+                UPDATE accounts
+                SET heartbeat = NOW() AT TIME ZONE 'America/Sao_Paulo'
+                WHERE git_url = %s
+            """, (git,))
+            self.conn.commit()
+            
+            return {"ok": True}
+        except Exception as e:
+            return {"ok": False, "error": f"Retornou o erro: {str(e)}"}
+        
     def verifVm(self):
         while True:
             try:

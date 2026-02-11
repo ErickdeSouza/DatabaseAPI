@@ -52,3 +52,9 @@ async def fgen():
 async def pgen(request: Request):
     body = await request.json()
     return dbdata.pgen(body)
+
+
+@app.post("/containers/update", dependencies=[Depends(auth.auth_dependency)])
+async def update(request: Request):
+    body = await request.json()
+    return dbdata.upcontainer(body["git"])
