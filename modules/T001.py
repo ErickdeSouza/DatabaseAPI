@@ -291,12 +291,14 @@ class FetchData:
                 if len(data) > 0:
                     for i in data:
                         timestamp_br = datetime.fromisoformat(str(i["heartbeat"]))
+                        if timestamp_br.tzinfo is None:
+                            timestamp_br = timestamp_br.replace(tzinfo=ZoneInfo("America/Sao_Paulo"))
                         agora_br = datetime.now(ZoneInfo("America/Sao_Paulo"))
                         diff = (agora_br - timestamp_br).total_seconds()
 
                         if diff >= 10 * 60:
+                            print("deletado")
                             self.delete(i["git_url"])
             except Exception:
                 pass
-            print("loop")
             time.sleep(7)
