@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "builds": [
+***REMOVED***{
+***REMOVED***  "src": "app.py",
+***REMOVED***  "use": "@vercel/python"
+***REMOVED***}
+  ],
+  "routes": [
+***REMOVED***{
+***REMOVED***  "src": "/(.*)",
+***REMOVED***  "dest": "app.py"
+***REMOVED***}
+  ]
+}
