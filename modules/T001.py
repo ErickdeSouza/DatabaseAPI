@@ -28,8 +28,8 @@ class FetchData:
 ***REMOVED***try:
 ***REMOVED******REMOVED***cur = self.conn.cursor()
 ***REMOVED******REMOVED***cur.execute("""
-***REMOVED******REMOVED******REMOVED***INSERT INTO accounts (git_url, ssh_key, priv_key, email, password)
-***REMOVED******REMOVED******REMOVED***VALUES (%s, %s, %s, %s, %s) RETURNING git_url
+***REMOVED******REMOVED******REMOVED***INSERT INTO accounts (git_url, ssh_key, priv_key, email, password, heartbeat)
+***REMOVED******REMOVED******REMOVED***VALUES (%s, %s, %s, %s, %s, NOW()) RETURNING git_url
 ***REMOVED******REMOVED******REMOVED***""", (d["git_url"], d["ssh_key"], d["priv_key"], d["email"], d["password"]))
 ***REMOVED******REMOVED***account_id = cur.fetchone()[0]
 ***REMOVED******REMOVED***self.conn.commit()
