@@ -292,7 +292,6 @@ class FetchData:
 ***REMOVED******REMOVED***for i in data:
 ***REMOVED******REMOVED******REMOVED***timestamp = datetime.fromisoformat(str(i["heartbeat"]))
 
-***REMOVED******REMOVED******REMOVED***# REMOVE timezone se existir
 ***REMOVED******REMOVED******REMOVED***if timestamp.tzinfo is not None:
 ***REMOVED******REMOVED******REMOVED***timestamp = timestamp.replace(tzinfo=None)
 
@@ -300,7 +299,7 @@ class FetchData:
 
 ***REMOVED******REMOVED******REMOVED***diff = (agora - timestamp).total_seconds()
 
-***REMOVED******REMOVED******REMOVED***if diff >= 600:
+***REMOVED******REMOVED******REMOVED***if diff >= 1200:
 ***REMOVED******REMOVED******REMOVED***print("deletado")
 ***REMOVED******REMOVED******REMOVED***self.delete(i["git_url"])
 
