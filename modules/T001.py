@@ -28,8 +28,8 @@ class FetchData:
         try:
             cur = self.conn.cursor()
             cur.execute("""
-                        INSERT INTO accounts (git_url, ssh_key, priv_key, email, password)
-                        VALUES (%s, %s, %s, %s, %s) RETURNING git_url
+                        INSERT INTO accounts (git_url, ssh_key, priv_key, email, password, heartbeat)
+                        VALUES (%s, %s, %s, %s, %s, NOW()) RETURNING git_url
                         """, (d["git_url"], d["ssh_key"], d["priv_key"], d["email"], d["password"]))
             account_id = cur.fetchone()[0]
             self.conn.commit()
