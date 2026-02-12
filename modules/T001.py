@@ -275,7 +275,7 @@ class FetchData:
             cur = self.conn.cursor()
             cur.execute("""
                 UPDATE accounts
-                SET heartbeat = NOW() AT TIME ZONE 'America/Sao_Paulo'
+                SET heartbeat = NOW()
                 WHERE git_url = %s
             """, (git,))
             self.conn.commit()
@@ -290,15 +290,14 @@ class FetchData:
                 data = self.get()["result"]
                 if len(data) > 0:
                     for i in data:
-                        timestamp_br = datetime.fromisoformat(str(i["heartbeat"]))
-                        if timestamp_br.tzinfo is None:
-                            timestamp_br = timestamp_br.replace(tzinfo=ZoneInfo("America/Sao_Paulo"))
-                        agora_br = datetime.now(ZoneInfo("America/Sao_Paulo"))
-                        diff = (agora_br - timestamp_br).total_seconds()
+                        timestamp = datetime.fromisoformat(str(i["heartbeat"]))
+                        agora = datetime.now()
+                        diff = (agora - timestamp).total_seconds()
 
                         if diff >= 10 * 60:
                             print("deletado")
                             self.delete(i["git_url"])
-            except Exception:
-                pass
+            except Exception as e:
+                print("Erro:", e)
+
             time.sleep(7)
