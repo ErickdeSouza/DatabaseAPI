@@ -288,15 +288,22 @@ class FetchData:
 ***REMOVED***while True:
 ***REMOVED******REMOVED***try:
 ***REMOVED******REMOVED***data = self.get()["result"]
-***REMOVED******REMOVED***if len(data) > 0:
-***REMOVED******REMOVED******REMOVED***for i in data:
+
+***REMOVED******REMOVED***for i in data:
 ***REMOVED******REMOVED******REMOVED***timestamp = datetime.fromisoformat(str(i["heartbeat"]))
+
+***REMOVED******REMOVED******REMOVED***# REMOVE timezone se existir
+***REMOVED******REMOVED******REMOVED***if timestamp.tzinfo is not None:
+***REMOVED******REMOVED******REMOVED***timestamp = timestamp.replace(tzinfo=None)
+
 ***REMOVED******REMOVED******REMOVED***agora = datetime.now()
+
 ***REMOVED******REMOVED******REMOVED***diff = (agora - timestamp).total_seconds()
 
-***REMOVED******REMOVED******REMOVED***if diff >= 10 * 60:
-***REMOVED******REMOVED******REMOVED******REMOVED***print("deletado")
-***REMOVED******REMOVED******REMOVED******REMOVED***self.delete(i["git_url"])
+***REMOVED******REMOVED******REMOVED***if diff >= 600:
+***REMOVED******REMOVED******REMOVED***print("deletado")
+***REMOVED******REMOVED******REMOVED***self.delete(i["git_url"])
+
 ***REMOVED******REMOVED***except Exception as e:
 ***REMOVED******REMOVED***print("Erro:", e)
 
