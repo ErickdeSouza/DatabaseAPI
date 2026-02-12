@@ -290,7 +290,7 @@ class FetchData:
 ***REMOVED******REMOVED***data = self.get()["result"]
 ***REMOVED******REMOVED***if len(data) > 0:
 ***REMOVED******REMOVED******REMOVED***for i in data:
-***REMOVED******REMOVED******REMOVED***timestamp_br = datetime.fromisoformat(i["heartbeat"])
+***REMOVED******REMOVED******REMOVED***timestamp_br = datetime.fromisoformat(str(i["heartbeat"]))
 ***REMOVED******REMOVED******REMOVED***if timestamp_br.tzinfo is None:
 ***REMOVED******REMOVED******REMOVED******REMOVED***timestamp_br = timestamp_br.replace(tzinfo=ZoneInfo("America/Sao_Paulo"))
 ***REMOVED******REMOVED******REMOVED***agora_br = datetime.now(ZoneInfo("America/Sao_Paulo"))
