@@ -275,7 +275,7 @@ class FetchData:
 ***REMOVED******REMOVED***cur = self.conn.cursor()
 ***REMOVED******REMOVED***cur.execute("""
 ***REMOVED******REMOVED***UPDATE accounts
-***REMOVED******REMOVED***SET heartbeat = NOW() AT TIME ZONE 'America/Sao_Paulo'
+***REMOVED******REMOVED***SET heartbeat = NOW()
 ***REMOVED******REMOVED***WHERE git_url = %s
 ***REMOVED******REMOVED***""", (git,))
 ***REMOVED******REMOVED***self.conn.commit()
@@ -290,15 +290,14 @@ class FetchData:
 ***REMOVED******REMOVED***data = self.get()["result"]
 ***REMOVED******REMOVED***if len(data) > 0:
 ***REMOVED******REMOVED******REMOVED***for i in data:
-***REMOVED******REMOVED******REMOVED***timestamp_br = datetime.fromisoformat(str(i["heartbeat"]))
-***REMOVED******REMOVED******REMOVED***if timestamp_br.tzinfo is None:
-***REMOVED******REMOVED******REMOVED******REMOVED***timestamp_br = timestamp_br.replace(tzinfo=ZoneInfo("America/Sao_Paulo"))
-***REMOVED******REMOVED******REMOVED***agora_br = datetime.now(ZoneInfo("America/Sao_Paulo"))
-***REMOVED******REMOVED******REMOVED***diff = (agora_br - timestamp_br).total_seconds()
+***REMOVED******REMOVED******REMOVED***timestamp = datetime.fromisoformat(str(i["heartbeat"]))
+***REMOVED******REMOVED******REMOVED***agora = datetime.now()
+***REMOVED******REMOVED******REMOVED***diff = (agora - timestamp).total_seconds()
 
 ***REMOVED******REMOVED******REMOVED***if diff >= 10 * 60:
 ***REMOVED******REMOVED******REMOVED******REMOVED***print("deletado")
 ***REMOVED******REMOVED******REMOVED******REMOVED***self.delete(i["git_url"])
-***REMOVED******REMOVED***except Exception:
-***REMOVED******REMOVED***pass
+***REMOVED******REMOVED***except Exception as e:
+***REMOVED******REMOVED***print("Erro:", e)
+
 ***REMOVED******REMOVED***time.sleep(7)
