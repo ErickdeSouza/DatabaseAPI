@@ -1,14 +1,21 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from psycopg2.extras import Json
-import time, psycopg2, random, base64, threading
+import time, psycopg2, random, base64, threading, requests
 
 
 
 class FetchData:
+    OWNER = "ErickdeSouza"
+    REPO = "Private-container"
+    
     def __init__(self, env):
-        self.conn = psycopg2.connect(env["APPY_DB_URL"], sslmode="require")
-        threading.Thread(target=self.verifVm).start()
+        self.env = env
+        self.conn = psycopg2.connect(self.env["APPY_DB_URL"], sslmode="require")
+        self.last_commit = self.lastcomm()
+        self.trigger = False
+        #threading.Thread(target=self.verifVm).start()
+        #threading.Thread(target=self.verifyC).start()
         
     def tempo(self, ts_inicio: str, ts_fim: str):
         inicio = datetime.fromisoformat(ts_inicio)
@@ -24,6 +31,11 @@ class FetchData:
         else:
             return f"{minutos} minutos"
 
+    """
+    Abaixo encontra a parte de Database.
+    Depois de resolvido problemas de timestamp, nada fora do normal aqui.
+    """
+    
     def post(self, d):
         try:
             cur = self.conn.cursor()
@@ -288,22 +300,76 @@ class FetchData:
         while True:
             try:
                 data = self.get()["result"]
-
                 for i in data:
                     timestamp = datetime.fromisoformat(str(i["heartbeat"]))
-
                     if timestamp.tzinfo is not None:
                         timestamp = timestamp.replace(tzinfo=None)
 
                     agora = datetime.now()
-
                     diff = (agora - timestamp).total_seconds()
 
                     if diff >= 1200:
                         print("deletado")
                         self.delete(i["git_url"])
-
+                        
             except Exception as e:
                 print("Erro:", e)
 
             time.sleep(7)
+            
+    """
+    Abaixo a parte do Github API.
+    Nova implementacao a essa API devido a necessidade de updates dos containers.
+    """
+    
+    def getTable(self, id):
+        cur = self.conn.cursor()
+        cur.execute('SELECT node_id FROM commits WHERE id = %s', (id,))
+        r = cur.fetchone()
+        
+        return {"id": r[0]}
+            
+    def lastcomm(self):
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {self.env["APPY_GIT_TOKEN"]}",
+            "X-GitHub-Api-Version": "2026-03-10"
+        }
+        resp = requests.get(f"https://api.github.com/repos/{FetchData.OWNER}/{FetchData.REPO}/commits", headers=headers)
+        
+        if resp.status_code == 200:
+            data = resp.json()[0]["node_id"]
+            return data
+
+        return {"node_id": ""}
+            
+    def getValue(self):
+        try:
+            return {"ok": True, "result": self.trigger}
+
+        except Exception as e:
+            self.conn.rollback()
+            return {"ok": False, "error": f"Retornou o erro: {str(e)}"}
+        
+    def verifyC(self):
+        while True:
+            time.sleep(.2)
+            
+            if self.last_commit:
+                last_commit = self.lastcomm()
+                if self.last_commit != last_commit:
+                    self.trigger = True
+                    continue
+                
+                self.trigger = False            
+                
+                
+if __name__ == "__main__":
+    from T002 import getSecrets
+
+    r = FetchData(getSecrets().envs)
+    #lol = r.getTable("1a1e5709-8e45-4db5-a3c2-3edb8c844ae4")
+    #print(lol["id"])
+    
+    ez = r.lastcomm()
+    print(ez)

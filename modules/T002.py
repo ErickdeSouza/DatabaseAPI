@@ -8,7 +8,7 @@ class getSecrets:
         self.envs = self.get(arg)
 
     def get(self, arg):
-        key = ["APPY_DB_URL", "SECRET_KEY", "USER"]
+        key = ["APPY_GIT_TOKEN", "APPY_DB_URL", "SECRET_KEY", "USER"]
         if arg:
             ENV_PATH = Path(__file__).resolve() / ".env"
             return dotenv_values(dotenv_path=ENV_PATH)
@@ -16,5 +16,6 @@ class getSecrets:
         return {
                 key[0]: os.getenv(key[0]),
                 key[1]: os.getenv(key[1]),
-                key[2]: os.getenv(key[2])
+                key[2]: os.getenv(key[2]),
+                key[3]: os.getenv(key[3])
             }
