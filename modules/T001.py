@@ -14,8 +14,8 @@ class FetchData:
         self.conn = psycopg2.connect(self.env["APPY_DB_URL"], sslmode="require")
         self.last_commit = self.lastcomm()
         self.trigger = False
-        #threading.Thread(target=self.verifVm).start()
-        #threading.Thread(target=self.verifyC).start()
+        threading.Thread(target=self.verifVm).start()
+        threading.Thread(target=self.verifyC).start()
         
     def tempo(self, ts_inicio: str, ts_fim: str):
         inicio = datetime.fromisoformat(ts_inicio)
