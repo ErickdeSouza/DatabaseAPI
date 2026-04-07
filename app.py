@@ -58,3 +58,7 @@ async def pgen(request: Request):
 async def update(request: Request):
 ***REMOVED***body = await request.json()
 ***REMOVED***return dbdata.upcontainer(body["git"])
+
+@app.get("/containers/commit", dependencies=[Depends(auth.auth_dependency)])
+def newupdate():
+***REMOVED***return dbdata.getValue()

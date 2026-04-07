@@ -1,14 +1,21 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from psycopg2.extras import Json
-import time, psycopg2, random, base64, threading
+import time, psycopg2, random, base64, threading, requests
 
 
 
 class FetchData:
+***REMOVED***OWNER = "ErickdeSouza"
+***REMOVED***REPO = "Private-container"
+***REMOVED***
 ***REMOVED***def __init__(self, env):
-***REMOVED***self.conn = psycopg2.connect(env["APPY_DB_URL"], sslmode="require")
-***REMOVED***threading.Thread(target=self.verifVm).start()
+***REMOVED***self.env = env
+***REMOVED***self.conn = psycopg2.connect(self.env["APPY_DB_URL"], sslmode="require")
+***REMOVED***self.last_commit = self.lastcomm()
+***REMOVED***self.trigger = False
+***REMOVED***#threading.Thread(target=self.verifVm).start()
+***REMOVED***#threading.Thread(target=self.verifyC).start()
 ***REMOVED***
 ***REMOVED***def tempo(self, ts_inicio: str, ts_fim: str):
 ***REMOVED***inicio = datetime.fromisoformat(ts_inicio)
@@ -24,6 +31,11 @@ class FetchData:
 ***REMOVED***else:
 ***REMOVED******REMOVED***return f"{minutos} minutos"
 
+***REMOVED***"""
+***REMOVED***Abaixo encontra a parte de Database.
+***REMOVED***Depois de resolvido problemas de timestamp, nada fora do normal aqui.
+***REMOVED***"""
+***REMOVED***
 ***REMOVED***def post(self, d):
 ***REMOVED***try:
 ***REMOVED******REMOVED***cur = self.conn.cursor()
@@ -288,22 +300,76 @@ class FetchData:
 ***REMOVED***while True:
 ***REMOVED******REMOVED***try:
 ***REMOVED******REMOVED***data = self.get()["result"]
-
 ***REMOVED******REMOVED***for i in data:
 ***REMOVED******REMOVED******REMOVED***timestamp = datetime.fromisoformat(str(i["heartbeat"]))
-
 ***REMOVED******REMOVED******REMOVED***if timestamp.tzinfo is not None:
 ***REMOVED******REMOVED******REMOVED***timestamp = timestamp.replace(tzinfo=None)
 
 ***REMOVED******REMOVED******REMOVED***agora = datetime.now()
-
 ***REMOVED******REMOVED******REMOVED***diff = (agora - timestamp).total_seconds()
 
 ***REMOVED******REMOVED******REMOVED***if diff >= 1200:
 ***REMOVED******REMOVED******REMOVED***print("deletado")
 ***REMOVED******REMOVED******REMOVED***self.delete(i["git_url"])
-
+***REMOVED******REMOVED******REMOVED***
 ***REMOVED******REMOVED***except Exception as e:
 ***REMOVED******REMOVED***print("Erro:", e)
 
 ***REMOVED******REMOVED***time.sleep(7)
+***REMOVED******REMOVED***
+***REMOVED***"""
+***REMOVED***Abaixo a parte do Github API.
+***REMOVED***Nova implementacao a essa API devido a necessidade de updates dos containers.
+***REMOVED***"""
+***REMOVED***
+***REMOVED***def getTable(self, id):
+***REMOVED***cur = self.conn.cursor()
+***REMOVED***cur.execute('SELECT node_id FROM commits WHERE id = %s', (id,))
+***REMOVED***r = cur.fetchone()
+***REMOVED***
+***REMOVED***return {"id": r[0]}
+***REMOVED******REMOVED***
+***REMOVED***def lastcomm(self):
+***REMOVED***headers = {
+***REMOVED******REMOVED***"Accept": "application/vnd.github+json",
+***REMOVED******REMOVED***"Authorization": f"Bearer {self.env["APPY_GIT_TOKEN"]}",
+***REMOVED******REMOVED***"X-GitHub-Api-Version": "2026-03-10"
+***REMOVED***}
+***REMOVED***resp = requests.get(f"https://api.github.com/repos/{FetchData.OWNER}/{FetchData.REPO}/commits", headers=headers)
+***REMOVED***
+***REMOVED***if resp.status_code == 200:
+***REMOVED******REMOVED***data = resp.json()[0]["node_id"]
+***REMOVED******REMOVED***return data
+
+***REMOVED***return {"node_id": ""}
+***REMOVED******REMOVED***
+***REMOVED***def getValue(self):
+***REMOVED***try:
+***REMOVED******REMOVED***return {"ok": True, "result": self.trigger}
+
+***REMOVED***except Exception as e:
+***REMOVED******REMOVED***self.conn.rollback()
+***REMOVED******REMOVED***return {"ok": False, "error": f"Retornou o erro: {str(e)}"}
+***REMOVED***
+***REMOVED***def verifyC(self):
+***REMOVED***while True:
+***REMOVED******REMOVED***time.sleep(.2)
+***REMOVED******REMOVED***
+***REMOVED******REMOVED***if self.last_commit:
+***REMOVED******REMOVED***last_commit = self.lastcomm()
+***REMOVED******REMOVED***if self.last_commit != last_commit:
+***REMOVED******REMOVED******REMOVED***self.trigger = True
+***REMOVED******REMOVED******REMOVED***continue
+***REMOVED******REMOVED***
+***REMOVED******REMOVED***self.trigger = False***REMOVED******REMOVED***
+***REMOVED******REMOVED***
+***REMOVED******REMOVED***
+if __name__ == "__main__":
+***REMOVED***from T002 import getSecrets
+
+***REMOVED***r = FetchData(getSecrets().envs)
+***REMOVED***#lol = r.getTable("1a1e5709-8e45-4db5-a3c2-3edb8c844ae4")
+***REMOVED***#print(lol["id"])
+***REMOVED***
+***REMOVED***ez = r.lastcomm()
+***REMOVED***print(ez)

@@ -8,7 +8,7 @@ class getSecrets:
 ***REMOVED***self.envs = self.get(arg)
 
 ***REMOVED***def get(self, arg):
-***REMOVED***key = ["APPY_DB_URL", "SECRET_KEY", "USER"]
+***REMOVED***key = ["APPY_GIT_TOKEN", "APPY_DB_URL", "SECRET_KEY", "USER"]
 ***REMOVED***if arg:
 ***REMOVED******REMOVED***ENV_PATH = Path(__file__).resolve() / ".env"
 ***REMOVED******REMOVED***return dotenv_values(dotenv_path=ENV_PATH)
@@ -16,5 +16,6 @@ class getSecrets:
 ***REMOVED***return {
 ***REMOVED******REMOVED***key[0]: os.getenv(key[0]),
 ***REMOVED******REMOVED***key[1]: os.getenv(key[1]),
-***REMOVED******REMOVED***key[2]: os.getenv(key[2])
+***REMOVED******REMOVED***key[2]: os.getenv(key[2]),
+***REMOVED******REMOVED***key[3]: os.getenv(key[3])
 ***REMOVED******REMOVED***}
