@@ -36,26 +36,26 @@ async def cpost(request: Request):
 
 @app.get("/containers/code", dependencies=[Depends(login.auth_dependency)])
 async def fcode():
-***REMOVED***return dbdata.fcode()
+***REMOVED***return dbdata.getpy()
 
 @app.post("/containers/code", dependencies=[Depends(login.auth_dependency)])
 async def pcode(request: Request):
 ***REMOVED***body = await request.json()
-***REMOVED***return dbdata.pcode(body)
+***REMOVED***return dbdata.postpy(body)
 
 @app.get("/containers/gen", dependencies=[Depends(login.auth_dependency)])
 async def fgen():
-***REMOVED***return dbdata.fgen()
+***REMOVED***return dbdata.getgen()
 
 @app.post("/containers/gen", dependencies=[Depends(login.auth_dependency)])
 async def pgen(request: Request):
 ***REMOVED***body = await request.json()
-***REMOVED***return dbdata.pgen(body)
+***REMOVED***return dbdata.postgen(body)
 
-@app.post("/containers/update", dependencies=[Depends(login.auth_dependency)])
+@app.post("/containers/heartbeat", dependencies=[Depends(login.auth_dependency)])
 async def update(request: Request):
 ***REMOVED***body = await request.json()
-***REMOVED***return dbdata.upcontainer(body["git"])
+***REMOVED***return dbdata.heartbeat(body["git"])
 
 @app.get("/containers/commit", dependencies=[Depends(login.auth_dependency)])
 def newupdate():

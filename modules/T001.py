@@ -1,48 +1,98 @@
 from datetime***REMOVED***import datetime
 from zoneinfo***REMOVED***import ZoneInfo
-from psycopg2.extras import Json
+from psycopg2.extras import Json, DictConnection
 import time, psycopg2, random, base64, threading, requests
 
 
-
-class FetchData:
-***REMOVED***OWNER = "ErickdeSouza"
-***REMOVED***REPO = "Private-container"
+class GitHub:
+***REMOVED***_OWNER = "ErickdeSouza"
+***REMOVED***_REPO = "Private-container"
 ***REMOVED***
-***REMOVED***def __init__(self, env):
+***REMOVED***def __init__(self, env, conn: DictConnection|None = None):
 ***REMOVED***self.env = env
-***REMOVED***self.conn = psycopg2.connect(self.env["APPY_DB_URL"], sslmode="require")
-***REMOVED***self.last_commit = self.lastcomm()
+***REMOVED***self.conn = conn
+***REMOVED***self.id = "1a1e5709-8e45-4db5-a3c2-3edb8c844ae4"
+***REMOVED***self.last_commit = self.lastCommit()
 ***REMOVED***self.trigger = False
-***REMOVED***threading.Thread(target=self.verifVm).start()
-***REMOVED***threading.Thread(target=self.verifyC).start()
 ***REMOVED***
-***REMOVED***def tempo(self, ts_inicio: str, ts_fim: str):
-***REMOVED***inicio = datetime.fromisoformat(ts_inicio)
-***REMOVED***fim = datetime.fromisoformat(ts_fim)
+***REMOVED***"""
+***REMOVED***Abaixo a parte do Github API.
+***REMOVED***Nova implementacao a essa API devido a necessidade de updates dos containers.
+***REMOVED***"""
+***REMOVED***def getTable(self):
+***REMOVED***try:
+***REMOVED******REMOVED***cur = self.conn.cursor()
+***REMOVED******REMOVED***cur.execute('SELECT node_id FROM commits WHERE id = %s', (self.id,))
+***REMOVED******REMOVED***r = cur.fetchone()
+***REMOVED******REMOVED***
+***REMOVED******REMOVED***return {"node_id": r[0]} 
+***REMOVED***except Exception as e:
+***REMOVED******REMOVED***self.conn.rollback()
+***REMOVED******REMOVED***return None
+***REMOVED***
+***REMOVED***def updateTable(self, node_id):
+***REMOVED***cur = self.conn.cursor()
+***REMOVED***cur.execute("""
+***REMOVED******REMOVED***UPDATE commits
+***REMOVED******REMOVED***SET node_id = %s
+***REMOVED******REMOVED***WHERE id = %s
+***REMOVED******REMOVED***""", (node_id, self.id)
+***REMOVED***
+***REMOVED***self.conn.commit()
+***REMOVED******REMOVED***
+***REMOVED***def lastCommit(self):
+***REMOVED***headers = {
+***REMOVED******REMOVED***"Accept": "application/vnd.github+json",
+***REMOVED******REMOVED***"Authorization": f"Bearer {self.env["APPY_GIT_TOKEN"]}",
+***REMOVED******REMOVED***"X-GitHub-Api-Version": "2026-03-10"
+***REMOVED***}
+***REMOVED***resp = requests.get(f"https://api.github.com/repos/{GitHub._OWNER}/{GitHub._REPO}/commits", headers=headers)
+***REMOVED***
+***REMOVED***if resp.status_code == 200:
+***REMOVED******REMOVED***data = resp.json()[0]["node_id"]
+***REMOVED******REMOVED***return data
 
-***REMOVED***total_segundos = int((fim - inicio).total_seconds())
+***REMOVED***return None
+***REMOVED******REMOVED***
+***REMOVED***def getValue(self):
+***REMOVED***return {"ok": True, "result": self.trigger}
+***REMOVED***
+***REMOVED***def verifyC(self):
+***REMOVED***while True:
+***REMOVED******REMOVED***if not self.last_commit:
+***REMOVED******REMOVED***self.last_commit = self.lastCommit()
+***REMOVED******REMOVED***continue
+***REMOVED******REMOVED***
+***REMOVED******REMOVED***table = self.getTable()
+***REMOVED******REMOVED***if table:
+***REMOVED******REMOVED***if self.last_commit != table["node_id"]:
+***REMOVED******REMOVED******REMOVED***self.trigger = True
+***REMOVED******REMOVED******REMOVED***self.updateTable(table["node_id"])
+***REMOVED******REMOVED***else:
+***REMOVED******REMOVED******REMOVED***self.trigger = False***REMOVED***
+***REMOVED******REMOVED***
+***REMOVED******REMOVED***time.sleep(7200)
 
-***REMOVED***horas = total_segundos // 3600
-***REMOVED***minutos = (total_segundos % 3600) // 60
 
-***REMOVED***if horas > 0:
-***REMOVED******REMOVED***return f"{horas} horas e {minutos} minutos"
-***REMOVED***else:
-***REMOVED******REMOVED***return f"{minutos} minutos"
-
+class FetchData(GitHub):
+***REMOVED***def __init__(self, env, test: bool|None = None):
+***REMOVED***self.conn = psycopg2.connect(env["APPY_DB_URL"], sslmode="require")
+***REMOVED***super().__init__(env, self.conn)
+***REMOVED***if not test:
+***REMOVED******REMOVED***threading.Thread(target=self.verifVm).start()
+***REMOVED******REMOVED***threading.Thread(target=self.verifyC).start()
+***REMOVED***
 ***REMOVED***"""
 ***REMOVED***Abaixo encontra a parte de Database.
 ***REMOVED***Depois de resolvido problemas de timestamp, nada fora do normal aqui.
 ***REMOVED***"""
-***REMOVED***
 ***REMOVED***def post(self, d):
 ***REMOVED***try:
 ***REMOVED******REMOVED***cur = self.conn.cursor()
 ***REMOVED******REMOVED***cur.execute("""
-***REMOVED******REMOVED******REMOVED***INSERT INTO accounts (git_url, ssh_key, priv_key, email, password, heartbeat)
-***REMOVED******REMOVED******REMOVED***VALUES (%s, %s, %s, %s, %s, NOW()) RETURNING git_url
-***REMOVED******REMOVED******REMOVED***""", (d["git_url"], d["ssh_key"], d["priv_key"], d["email"], d["password"]))
+***REMOVED******REMOVED***INSERT INTO accounts (git_url, ssh_key, priv_key, email, password, heartbeat)
+***REMOVED******REMOVED***VALUES (%s, %s, %s, %s, %s, NOW()) RETURNING git_url
+***REMOVED******REMOVED***""", (d["git_url"], d["ssh_key"], d["priv_key"], d["email"], d["password"]))
 ***REMOVED******REMOVED***account_id = cur.fetchone()[0]
 ***REMOVED******REMOVED***self.conn.commit()
 
@@ -51,7 +101,7 @@ class FetchData:
 ***REMOVED******REMOVED***self.conn.rollback()
 ***REMOVED******REMOVED***return {"ok": False, "error": f"Retornou o erro: {str(e)}"}
 
-***REMOVED***def get(self, git_id: str = None, arg: bool = False):
+***REMOVED***def get(self, git_id=None, arg=False):
 ***REMOVED***try:
 ***REMOVED******REMOVED***cur = self.conn.cursor()
 ***REMOVED******REMOVED***if git_id:
@@ -60,22 +110,10 @@ class FetchData:
 ***REMOVED******REMOVED******REMOVED***"FROM accounts WHERE git_url = %s",
 ***REMOVED******REMOVED******REMOVED***(git_id,)
 ***REMOVED******REMOVED***
-***REMOVED******REMOVED***r = cur.fetchone()
-***REMOVED******REMOVED***return {"ok": True, "result": {
-***REMOVED******REMOVED******REMOVED***"id": str(r[0]),
-***REMOVED******REMOVED******REMOVED***"git_url": r[1],
-***REMOVED******REMOVED******REMOVED***"email": r[2],
-***REMOVED******REMOVED******REMOVED***"ssh_key": r[3] if arg else None,
-***REMOVED******REMOVED******REMOVED***"priv_key": r[4] if arg else None,
-***REMOVED******REMOVED******REMOVED***"password": r[5],
-***REMOVED******REMOVED******REMOVED***"time": r[6],
-***REMOVED******REMOVED******REMOVED***"heartbeat": r[7]
-***REMOVED******REMOVED******REMOVED***}
-***REMOVED******REMOVED***}
-
+***REMOVED******REMOVED***elif not git_id:
 ***REMOVED******REMOVED***cur.execute("SELECT id, git_url, email, ssh_key, priv_key, password, created_at, heartbeat FROM accounts")
+***REMOVED******REMOVED***
 ***REMOVED******REMOVED***rows = cur.fetchall()
-
 ***REMOVED******REMOVED***return {"ok": True, "result": [{
 ***REMOVED******REMOVED******REMOVED***"id": str(r[0]),
 ***REMOVED******REMOVED******REMOVED***"git_url": r[1],
@@ -95,10 +133,7 @@ class FetchData:
 ***REMOVED***def delete(self, git):
 ***REMOVED***try:
 ***REMOVED******REMOVED***cur = self.conn.cursor()
-***REMOVED******REMOVED***cur.execute(
-***REMOVED******REMOVED***"DELETE FROM accounts WHERE git_url= %s RETURNING id",
-***REMOVED******REMOVED***(git,)
-***REMOVED******REMOVED***
+***REMOVED******REMOVED***cur.execute("DELETE FROM accounts WHERE git_url= %s RETURNING id", (git,))
 ***REMOVED******REMOVED***deleted = cur.fetchone()
 ***REMOVED******REMOVED***self.conn.commit()
 ***REMOVED******REMOVED***if not deleted:
@@ -110,13 +145,13 @@ class FetchData:
 ***REMOVED******REMOVED***self.conn.rollback()
 ***REMOVED******REMOVED***return {"ok": False, "error": f"Retornou o erro: {str(e)}"}
 ***REMOVED***
-***REMOVED***def fcode(self):
+***REMOVED***def getpy(self):
 ***REMOVED***try:
 ***REMOVED******REMOVED***cur = self.conn.cursor()
 ***REMOVED******REMOVED***cur.execute("""
 ***REMOVED******REMOVED***SELECT code 
-***REMOVED******REMOVED***FROM container WHERE id = %s
-***REMOVED******REMOVED***""", ("2b66698d-4995-410a-9a7d-3a462b25e323",)
+***REMOVED******REMOVED***FROM container WHERE id = %s""", ("2b66698d-4995-410a-9a7d-3a462b25e323",)
+***REMOVED******REMOVED***
 ***REMOVED******REMOVED***
 ***REMOVED******REMOVED***r = cur.fetchone()
 ***REMOVED******REMOVED***return {"ok": True, "result": r[0]}
@@ -125,7 +160,7 @@ class FetchData:
 ***REMOVED******REMOVED***self.conn.rollback()
 ***REMOVED******REMOVED***return {"ok": False, "error": f"Retornou o erro: {str(e)}"}
 ***REMOVED******REMOVED***
-***REMOVED***def pcode(
+***REMOVED***def postpy(
 ***REMOVED***self,
 ***REMOVED***response: dict, #Keys necessarias: "edit", "code", "amount", "package" or "change"
 ***REMOVED***):
@@ -213,13 +248,12 @@ class FetchData:
 ***REMOVED******REMOVED***self.conn.rollback()
 ***REMOVED******REMOVED***return {"ok": False, "error": f"Retornou o erro: {str(e)}"}
 ***REMOVED******REMOVED***
-***REMOVED***def fgen(self):
+***REMOVED***def getgen(self):
 ***REMOVED***try:
 ***REMOVED******REMOVED***cur = self.conn.cursor()
 ***REMOVED******REMOVED***cur.execute("""
 ***REMOVED******REMOVED***SELECT gen 
-***REMOVED******REMOVED***FROM container WHERE id = %s
-***REMOVED******REMOVED***""", ("2b66698d-4995-410a-9a7d-3a462b25e323",)
+***REMOVED******REMOVED***FROM container WHERE id = %s""", ("2b66698d-4995-410a-9a7d-3a462b25e323",)
 ***REMOVED******REMOVED***
 ***REMOVED******REMOVED***r = cur.fetchone()
 ***REMOVED******REMOVED***return {"ok": True, "result": r[0]}
@@ -228,7 +262,7 @@ class FetchData:
 ***REMOVED******REMOVED***self.conn.rollback()
 ***REMOVED******REMOVED***return {"ok": False, "error": f"Retornou o erro: {str(e)}"}
 
-***REMOVED***def pgen(
+***REMOVED***def postgen(
 ***REMOVED***self,
 ***REMOVED***response: dict, #Keys necessarias: "vms", "create" or "del" or "verif"
 ***REMOVED***):
@@ -282,14 +316,14 @@ class FetchData:
 ***REMOVED***
 ***REMOVED***self.conn.commit()
 ***REMOVED***
-***REMOVED***def upcontainer(self, git):
+***REMOVED***def heartbeat(self, git):
 ***REMOVED***try:
 ***REMOVED******REMOVED***cur = self.conn.cursor()
 ***REMOVED******REMOVED***cur.execute("""
 ***REMOVED******REMOVED***UPDATE accounts
 ***REMOVED******REMOVED***SET heartbeat = NOW()
-***REMOVED******REMOVED***WHERE git_url = %s
-***REMOVED******REMOVED***""", (git,))
+***REMOVED******REMOVED***WHERE git_url = %s""", (git,)
+***REMOVED******REMOVED***
 ***REMOVED******REMOVED***self.conn.commit()
 ***REMOVED******REMOVED***
 ***REMOVED******REMOVED***return {"ok": True}
@@ -315,61 +349,31 @@ class FetchData:
 ***REMOVED******REMOVED***except Exception as e:
 ***REMOVED******REMOVED***print("Erro:", e)
 
-***REMOVED******REMOVED***time.sleep(7)
+***REMOVED******REMOVED***time.sleep(7)***REMOVED*** 
 ***REMOVED******REMOVED***
-***REMOVED***"""
-***REMOVED***Abaixo a parte do Github API.
-***REMOVED***Nova implementacao a essa API devido a necessidade de updates dos containers.
-***REMOVED***"""
-***REMOVED***
-***REMOVED***def getTable(self, id):
-***REMOVED***cur = self.conn.cursor()
-***REMOVED***cur.execute('SELECT node_id FROM commits WHERE id = %s', (id,))
-***REMOVED***r = cur.fetchone()
-***REMOVED***
-***REMOVED***return {"id": r[0]}
-***REMOVED******REMOVED***
-***REMOVED***def lastcomm(self):
-***REMOVED***headers = {
-***REMOVED******REMOVED***"Accept": "application/vnd.github+json",
-***REMOVED******REMOVED***"Authorization": f"Bearer {self.env["APPY_GIT_TOKEN"]}",
-***REMOVED******REMOVED***"X-GitHub-Api-Version": "2026-03-10"
-***REMOVED***}
-***REMOVED***resp = requests.get(f"https://api.github.com/repos/{FetchData.OWNER}/{FetchData.REPO}/commits", headers=headers)
-***REMOVED***
-***REMOVED***if resp.status_code == 200:
-***REMOVED******REMOVED***data = resp.json()[0]["node_id"]
-***REMOVED******REMOVED***return data
+***REMOVED***@staticmethod
+***REMOVED***def tempo(ts_inicio: str, ts_fim: str):
+***REMOVED***inicio = datetime.fromisoformat(ts_inicio)
+***REMOVED***fim = datetime.fromisoformat(ts_fim)
 
-***REMOVED***return {"node_id": ""}
-***REMOVED******REMOVED***
-***REMOVED***def getValue(self):
-***REMOVED***try:
-***REMOVED******REMOVED***return {"ok": True, "result": self.trigger}
+***REMOVED***total_segundos = int((fim - inicio).total_seconds())
 
-***REMOVED***except Exception as e:
-***REMOVED******REMOVED***self.conn.rollback()
-***REMOVED******REMOVED***return {"ok": False, "error": f"Retornou o erro: {str(e)}"}
-***REMOVED***
-***REMOVED***def verifyC(self):
-***REMOVED***while True:
-***REMOVED******REMOVED***time.sleep(.2)
-***REMOVED******REMOVED***
-***REMOVED******REMOVED***if self.last_commit:
-***REMOVED******REMOVED***last_commit = self.lastcomm()
-***REMOVED******REMOVED***if self.last_commit != last_commit:
-***REMOVED******REMOVED******REMOVED***self.trigger = True
-***REMOVED******REMOVED******REMOVED***continue
-***REMOVED******REMOVED***
-***REMOVED******REMOVED***self.trigger = False***REMOVED******REMOVED***
+***REMOVED***horas = total_segundos // 3600
+***REMOVED***minutos = (total_segundos % 3600) // 60
+
+***REMOVED***if horas > 0:
+***REMOVED******REMOVED***return f"{horas} horas e {minutos} minutos"
+***REMOVED***else:
+***REMOVED******REMOVED***return f"{minutos} minutos"
 ***REMOVED******REMOVED***
 ***REMOVED******REMOVED***
 if __name__ == "__main__":
 ***REMOVED***from T002 import getSecrets
 
-***REMOVED***r = FetchData(getSecrets().envs)
+***REMOVED***r = FetchData(getSecrets().envs, True)
 ***REMOVED***#lol = r.getTable("1a1e5709-8e45-4db5-a3c2-3edb8c844ae4")
 ***REMOVED***#print(lol["id"])
-***REMOVED***
-***REMOVED***ez = r.lastcomm()
-***REMOVED***print(ez)
+***REMOVED***print(r.lastCommit())
+***REMOVED***print(r.getTable())
+***REMOVED***#r.updateTable("sdasmda1212sdsaasd1sadda")
+***REMOVED***print(r.getTable())
