@@ -1,5 +1,6 @@
 .vercel
 .env
 teste.py
+teste2.py
 */__pycache__
 __pycache__
