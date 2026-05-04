@@ -1,4 +1,4 @@
-from modules.T001 import FetchData
+from modules.T001 import MainAPI
 from modules.T002 import getSecrets
 from modules.T003 import Token
 from fastapi import FastAPI, WebSocket
@@ -7,7 +7,7 @@ from fastapi import FastAPI, WebSocket
 app = FastAPI(title="Database API", version="1.5.0")
 
 envs = getSecrets().envs
-database = FetchData(envs)
+database = MainAPI(envs)
 login = Token(envs)
 
 
