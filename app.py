@@ -1,7 +1,5 @@
-from modules.T001 import MainAPI
-from modules.T002 import getSecrets
-from modules.T003 import Token
-from fastapi import FastAPI, WebSocket
+from modules  import MainAPI, Token, getSecrets
+from fastapi  import FastAPI, WebSocket
 
 
 app = FastAPI(title="Database API", version="1.5.0")
@@ -13,7 +11,8 @@ login = Token(envs)
 
 @app.websocket("/containers")
 async def websocket_endpoint(websocket: WebSocket):
-***REMOVED***login.verify(websocket)
+***REMOVED***if login.verify(websocket): 
+***REMOVED***await websocket.accept()
 ***REMOVED***
 ***REMOVED***while True:
 ***REMOVED***data = await websocket.receive_json()

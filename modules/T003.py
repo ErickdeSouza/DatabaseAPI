@@ -15,6 +15,7 @@ class Token:
 ***REMOVED***token = websocket.query_params.get("token")
 ***REMOVED***try:
 ***REMOVED******REMOVED***jwt.decode(token, self.secret, algorithms=["HS256"])
+***REMOVED******REMOVED***return True
 ***REMOVED***except jwt.ExpiredSignatureError:
 ***REMOVED******REMOVED***raise WebSocketException(reason="Expired Token", code=status.WS_1008_POLICY_VIOLATION)
 ***REMOVED***except jwt.InvalidTokenError:

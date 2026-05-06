@@ -1,5 +1,4 @@
-from concurrent.futures import ThreadPoolExecutor
-import time 
+from concurrent.futures import ThreadPoolExecutor 
 
 class Separate:
 ***REMOVED***

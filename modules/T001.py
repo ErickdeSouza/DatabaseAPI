@@ -1,8 +1,8 @@
-from datetime***REMOVED***import datetime
-from zoneinfo***REMOVED***import ZoneInfo
-from psycopg2.extras import Json, DictConnection
-from modules.T004***REMOVED***import ScalingoDeployer, FetchRepo
-from modules.T005***REMOVED***import Separate
+from .T005***REMOVED******REMOVED***import Separate
+from .T004***REMOVED******REMOVED***import ScalingoDeployer, FetchRepo
+from datetime***REMOVED*** import datetime
+from zoneinfo***REMOVED*** import ZoneInfo
+from psycopg2.extras  import Json, DictConnection
 import time, psycopg2, random, base64, threading, requests
 
 
@@ -62,7 +62,7 @@ class MainAPI(GitHub):
 ***REMOVED***super().__init__(env, self.conn)
 ***REMOVED***self.commit = ScalingoDeployer()
 ***REMOVED***#payload requerido na resposta recebida pelo user
-***REMOVED***self.required = ("tw", "dt")
+***REMOVED***self.required = ["tw", "dt"]
 ***REMOVED***self.twcodes = [
 ***REMOVED***i for i in range(1, 7)],
 ***REMOVED******REMOVED***(1, [self.getgen, self.postgen]),
@@ -78,22 +78,23 @@ class MainAPI(GitHub):
 ***REMOVED***
 ***REMOVED***def manager(self, data: dict):
 ***REMOVED***#verify do payload
-***REMOVED***for item in data.keys():
-***REMOVED******REMOVED***if not item in self.required:
-***REMOVED******REMOVED***return {"tw": 67, "dt": {"error": f'"{item}" está faltando no seu body.'}}
+***REMOVED***for item in self.required:
+***REMOVED******REMOVED***if item not in data.keys():
+***REMOVED******REMOVED***return {"error": f'"{item}" está faltando no seu body.'}
 ***REMOVED******REMOVED***
 ***REMOVED***if data["tw"] not in self.twcodes[0]:
-***REMOVED******REMOVED***return {"tw": 67, "dt": {"error": 'O código do seu "tw" não existe ou é invalido.'}}
+***REMOVED******REMOVED***return {"error": 'O código do seu "tw" não existe ou é invalido.'}
 ***REMOVED***
 ***REMOVED***for code, func in self.twcodes[1:]:
-***REMOVED******REMOVED***if type(func) != list and code == data["tw"]:
+***REMOVED******REMOVED***if callable(func) and code == data["tw"]:
 ***REMOVED******REMOVED***return func(data["dt"])
 ***REMOVED******REMOVED***
+***REMOVED******REMOVED***elif not callable(func) and code == data["tw"]:
 ***REMOVED******REMOVED***method = data["dt"]["method"]
 ***REMOVED******REMOVED***if method == "get":
-***REMOVED******REMOVED***return func[0]()
+***REMOVED******REMOVED******REMOVED***return func[0]()
 ***REMOVED******REMOVED***elif method == "post":
-***REMOVED******REMOVED***return func[1](data["dt"])
+***REMOVED******REMOVED******REMOVED***return func[1](data["dt"])
 ***REMOVED******REMOVED***
 ***REMOVED***def response(self, data):
 ***REMOVED***resp = self.manager(data)
@@ -355,10 +356,10 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED***continue
 ***REMOVED******REMOVED***
 ***REMOVED******REMOVED***table = self.getTable()
-***REMOVED******REMOVED***if table:
+***REMOVED******REMOVED***if table and table["node_id"] != "Wait":
 ***REMOVED******REMOVED***if self.last_commit != table["node_id"]:
 ***REMOVED******REMOVED******REMOVED***self.trigger = True
-***REMOVED******REMOVED******REMOVED***self.updateTable(table["node_id"])
+***REMOVED******REMOVED******REMOVED***self.updateTable(self.last_commit)
 ***REMOVED******REMOVED******REMOVED***self.distribute()
 ***REMOVED******REMOVED***else:
 ***REMOVED******REMOVED******REMOVED***self.trigger = False***REMOVED***
