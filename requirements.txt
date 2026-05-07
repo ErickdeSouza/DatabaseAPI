@@ -5,4 +5,4 @@ fastapi
 uvicorn[standard]
 tzdata
 GitPython
-jwt
+PyJWT
