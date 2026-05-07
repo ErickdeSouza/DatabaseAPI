@@ -90,11 +90,16 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED***return func(data["dt"])
 ***REMOVED******REMOVED***
 ***REMOVED******REMOVED***elif not callable(func) and code == data["tw"]:
+***REMOVED******REMOVED***if "method" not in data["dt"]:
+***REMOVED******REMOVED******REMOVED***return {"error": '"method" em falta em seu body.'}
+***REMOVED******REMOVED***
 ***REMOVED******REMOVED***method = data["dt"]["method"]
-***REMOVED******REMOVED***if method == "get":
+***REMOVED******REMOVED***if type(method) == str and method == "get":
 ***REMOVED******REMOVED******REMOVED***return func[0]()
-***REMOVED******REMOVED***elif method == "post":
+***REMOVED******REMOVED***elif type(method) == str and method == "post":
 ***REMOVED******REMOVED******REMOVED***return func[1](data["dt"])
+***REMOVED******REMOVED***else:
+***REMOVED******REMOVED******REMOVED***return {"error": '"method" só aceita "post" ou "get" no body.'}
 ***REMOVED******REMOVED***
 ***REMOVED***def response(self, data):
 ***REMOVED***resp = self.manager(data)
