@@ -16,8 +16,6 @@ class GitHub:
 ***REMOVED***self.env = env
 ***REMOVED***self.conn = conn
 ***REMOVED***self.id = "1a1e5709-8e45-4db5-a3c2-3edb8c844ae4"
-***REMOVED***self.last_commit = self.lastCommit()
-***REMOVED***self.trigger = False
 ***REMOVED***
 ***REMOVED***"""Abaixo a parte do Github API. Nova implementacao a essa API devido a necessidade de updates dos containers."""
 ***REMOVED***def getTable(self):
@@ -140,8 +138,8 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED******REMOVED***"id": str(r[0]),
 ***REMOVED******REMOVED******REMOVED***"git_url": r[1],
 ***REMOVED******REMOVED******REMOVED***"email": r[2],
-***REMOVED******REMOVED******REMOVED***"ssh_key": r[3] if data["arg"] else None,
-***REMOVED******REMOVED******REMOVED***"priv_key": r[4] if data["arg"] else None,
+***REMOVED******REMOVED******REMOVED***"ssh_key": r[3] if data and data["arg"] else None,
+***REMOVED******REMOVED******REMOVED***"priv_key": r[4] if data and data["arg"] else None,
 ***REMOVED******REMOVED******REMOVED***"password": r[5],
 ***REMOVED******REMOVED******REMOVED***"time": r[6],
 ***REMOVED******REMOVED******REMOVED***"heartbeat": r[7]
@@ -288,6 +286,7 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED******REMOVED***return {"ok": True, "All": True, "result": f"Todos containers solicitados já criados!"}
 ***REMOVED******REMOVED******REMOVED***
 ***REMOVED******REMOVED***data["info"]["created"] += 1
+***REMOVED******REMOVED***data["separate"][response["git"]] -= 1
 ***REMOVED******REMOVED***self.upgen(data)
 ***REMOVED******REMOVED***return {"ok": True, "All": False, "result": f"+1 container criado!"}
 ***REMOVED******REMOVED***
@@ -322,14 +321,6 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED***
 ***REMOVED******REMOVED***self.conn.commit()
 ***REMOVED******REMOVED***
-***REMOVED******REMOVED***if data["node_id"] != self.lastCommit():
-***REMOVED******REMOVED***FetchRepo(self.env)
-***REMOVED******REMOVED***cont = self.get({"arg": True})["result"]
-***REMOVED******REMOVED***for container in cont:
-***REMOVED******REMOVED******REMOVED***if container["git_url"] == data["git"]:
-***REMOVED******REMOVED******REMOVED***Separate.iniciate(1, self.commit.self_git_push, list(container))
-***REMOVED******REMOVED***
-***REMOVED******REMOVED***
 ***REMOVED******REMOVED***return {"ok": True}
 ***REMOVED***except Exception as e:
 ***REMOVED******REMOVED***return {"ok": False, "func_error": f"Retornou o erro: {str(e)}"}
@@ -337,8 +328,13 @@ class MainAPI(GitHub):
 ***REMOVED***def verifVm(self):
 ***REMOVED***while True:
 ***REMOVED******REMOVED***try:
-***REMOVED******REMOVED***data = self.get()["result"]
-***REMOVED******REMOVED***for i in data:
+***REMOVED******REMOVED***data = self.get()
+***REMOVED******REMOVED***if not data["ok"]:
+***REMOVED******REMOVED******REMOVED***print(data["func_error"])
+***REMOVED******REMOVED******REMOVED***time.sleep(60) 
+***REMOVED******REMOVED******REMOVED***continue
+***REMOVED******REMOVED***
+***REMOVED******REMOVED***for i in data["result"]:
 ***REMOVED******REMOVED******REMOVED***timestamp = datetime.fromisoformat(str(i["heartbeat"]))
 ***REMOVED******REMOVED******REMOVED***if timestamp.tzinfo is not None:
 ***REMOVED******REMOVED******REMOVED***timestamp = timestamp.replace(tzinfo=None)
@@ -347,7 +343,7 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED******REMOVED***diff = (agora - timestamp).total_seconds()
 
 ***REMOVED******REMOVED******REMOVED***if diff >= 1200:
-***REMOVED******REMOVED******REMOVED***self.delete(i["git_url"])
+***REMOVED******REMOVED******REMOVED***self.delete({"git": i["git_url"]})
 ***REMOVED******REMOVED******REMOVED***
 ***REMOVED******REMOVED***except Exception as e:
 ***REMOVED******REMOVED***print("Erro: ", e)
@@ -356,20 +352,15 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED***
 ***REMOVED***def verifyC(self):
 ***REMOVED***while True:
-***REMOVED******REMOVED***if not self.last_commit:
-***REMOVED******REMOVED***self.last_commit = self.lastCommit()
-***REMOVED******REMOVED***continue
-***REMOVED******REMOVED***
+***REMOVED******REMOVED***last_commit = self.lastCommit()
 ***REMOVED******REMOVED***table = self.getTable()
-***REMOVED******REMOVED***if table and table["node_id"] != "Wait":
-***REMOVED******REMOVED***if self.last_commit != table["node_id"]:
+***REMOVED******REMOVED***if last_commit and table and table["node_id"] != "Wait":
+***REMOVED******REMOVED***if last_commit != table["node_id"]:
 ***REMOVED******REMOVED******REMOVED***self.trigger = True
-***REMOVED******REMOVED******REMOVED***self.updateTable(self.last_commit)
+***REMOVED******REMOVED******REMOVED***self.updateTable(last_commit)
 ***REMOVED******REMOVED******REMOVED***self.distribute()
-***REMOVED******REMOVED***else:
-***REMOVED******REMOVED******REMOVED***self.trigger = False***REMOVED***
 ***REMOVED******REMOVED***
-***REMOVED******REMOVED***time.sleep(7200)
+***REMOVED******REMOVED***time.sleep(3600)
 ***REMOVED******REMOVED***
 ***REMOVED***def distribute(self):
 ***REMOVED***FetchRepo(self.env)
