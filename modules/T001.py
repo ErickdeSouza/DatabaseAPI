@@ -342,7 +342,7 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED******REMOVED***agora = datetime.now()
 ***REMOVED******REMOVED******REMOVED***diff = (agora - timestamp).total_seconds()
 
-***REMOVED******REMOVED******REMOVED***if diff >= 1200:
+***REMOVED******REMOVED******REMOVED***if diff >= 3600:
 ***REMOVED******REMOVED******REMOVED***self.delete({"git": i["git_url"]})
 ***REMOVED******REMOVED******REMOVED***
 ***REMOVED******REMOVED***except Exception as e:

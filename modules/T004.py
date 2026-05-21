@@ -199,37 +199,13 @@ class ScalingoDeployer:
 ***REMOVED******REMOVED***else:
 ***REMOVED******REMOVED******REMOVED***file_path.unlink()
 ***REMOVED******REMOVED******REMOVED***
-***REMOVED***(dest_folder / "Aptfile").write_text(
-***REMOVED******REMOVED***"libnspr4\n"
-***REMOVED******REMOVED***"libnss3\n"
-***REMOVED******REMOVED***"libatk1.0-0\n"
-***REMOVED******REMOVED***"libatk-bridge2.0-0\n"
-***REMOVED******REMOVED***"libcups2\n"
-***REMOVED******REMOVED***"libxcomposite1\n"
-***REMOVED******REMOVED***"libxdamage1\n"
-***REMOVED******REMOVED***"libatspi2.0-0\n"
-***REMOVED******REMOVED***"libgtk-3-0\n"
-***REMOVED******REMOVED***"gstreamer1.0-plugins-base\n"
-***REMOVED******REMOVED***"gstreamer1.0-plugins-good\n"
-***REMOVED******REMOVED***"gstreamer1.0-plugins-bad\n"
-***REMOVED******REMOVED***"gstreamer1.0-plugins-ugly\n"
-***REMOVED******REMOVED***"gstreamer1.0-libav\n"
-***REMOVED******REMOVED***"gstreamer1.0-tools\n"
-***REMOVED******REMOVED***"libwoff1\n"
-***REMOVED******REMOVED***"libavif-dev\n"
-***REMOVED******REMOVED***"libharfbuzz-icu0\n"
-***REMOVED******REMOVED***"libenchant-2-2\n"
-***REMOVED******REMOVED***"libsecret-1-0\n"
-***REMOVED******REMOVED***"libhyphen0\n"
-***REMOVED******REMOVED***"libmanette-0.2-0\n"
-***REMOVED******REMOVED***"libgles2\n",
-***REMOVED******REMOVED***encoding="utf-8"
+***REMOVED***b = requests.get("https://raw.githubusercontent.com/ErickdeSouza/easy/refs/heads/main/builpack").text
+***REMOVED***l = requests.get("https://raw.githubusercontent.com/ErickdeSouza/easy/refs/heads/main/libs").text
 ***REMOVED***
-
-***REMOVED***(dest_folder / ".buildpacks").write_text(
-***REMOVED******REMOVED***"https://github.com/Scalingo/apt-buildpack.git\n"
-***REMOVED******REMOVED***"https://github.com/Scalingo/python-buildpack.git\n",
-***REMOVED******REMOVED***encoding="utf-8"
-***REMOVED***
-
-***REMOVED***print("Ultimo versao commitada baixada!")
+***REMOVED***with open(dest_folder / "Aptfile", "w", encoding="utf-8") as f:
+***REMOVED******REMOVED***for i in l.splitlines():
+***REMOVED******REMOVED***f.write(i + "\n")
+***REMOVED******REMOVED***
+***REMOVED***with open(dest_folder / ".buildpacks", "w", encoding="utf-8") as f:
+***REMOVED******REMOVED***for i in b.splitlines():
+***REMOVED******REMOVED***f.write(i + "\n")
