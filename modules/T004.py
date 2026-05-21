@@ -199,7 +199,7 @@ class ScalingoDeployer:
 ***REMOVED******REMOVED***else:
 ***REMOVED******REMOVED******REMOVED***file_path.unlink()
 ***REMOVED******REMOVED******REMOVED***
-***REMOVED***b = requests.get("https://raw.githubusercontent.com/ErickdeSouza/easy/refs/heads/main/builpack").text
+***REMOVED***b = requests.get("https://raw.githubusercontent.com/ErickdeSouza/easy/refs/heads/main/buildpack").text
 ***REMOVED***l = requests.get("https://raw.githubusercontent.com/ErickdeSouza/easy/refs/heads/main/libs").text
 ***REMOVED***
 ***REMOVED***with open(dest_folder / "Aptfile", "w", encoding="utf-8") as f:
