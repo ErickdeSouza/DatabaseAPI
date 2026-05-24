@@ -53,6 +53,19 @@ class GitHub:
 
 ***REMOVED***return None
 ***REMOVED***
+***REMOVED***def getcommit(self):
+***REMOVED***headers = {
+***REMOVED******REMOVED***"Accept": "application/vnd.github+json",
+***REMOVED******REMOVED***"Authorization": f"Bearer {self.env["APPY_GIT_TOKEN"]}",
+***REMOVED******REMOVED***"X-GitHub-Api-Version": "2026-03-10"
+***REMOVED***}
+***REMOVED***resp = requests.get(f"https://api.github.com/repos/{GitHub._OWNER}/{GitHub._REPO}/commits", headers=headers)
+***REMOVED***
+***REMOVED***if resp.status_code == 200:
+***REMOVED******REMOVED***return resp.json()[0]
+***REMOVED***
+***REMOVED***return None
+***REMOVED***
 
 class MainAPI(GitHub):
 ***REMOVED***def __init__(self, env, test: bool|None = None):
@@ -133,6 +146,7 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED***else:
 ***REMOVED******REMOVED***cur.execute("SELECT id, git_url, email, ssh_key, priv_key, password, created_at, heartbeat FROM accounts")
 ***REMOVED******REMOVED***
+***REMOVED******REMOVED***git = self.getcommit()
 ***REMOVED******REMOVED***rows = cur.fetchall()
 ***REMOVED******REMOVED***return {"ok": True, "result": [{
 ***REMOVED******REMOVED******REMOVED***"id": str(r[0]),
@@ -143,7 +157,9 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED******REMOVED***"password": r[5],
 ***REMOVED******REMOVED******REMOVED***"time": r[6],
 ***REMOVED******REMOVED******REMOVED***"heartbeat": r[7]
-***REMOVED******REMOVED***} for r in rows]
+***REMOVED******REMOVED***} for r in rows],
+***REMOVED******REMOVED***"commit": git["commit"]["message"] if git else None,
+***REMOVED******REMOVED***"lastrepo": git["commit"]["committer"]["date"] if git else None
 ***REMOVED******REMOVED***}
 
 ***REMOVED***except Exception as e:
