@@ -5,7 +5,7 @@
 ***REMOVED***
 ***REMOVED***
 
-class ScalingoDeployer:
+***REMOVED***
 ***REMOVED***
 ***REMOVED***
 ***REMOVED***

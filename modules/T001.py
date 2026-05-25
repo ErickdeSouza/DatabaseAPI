@@ -1,5 +1,5 @@
 from .T005***REMOVED******REMOVED***import Separate
-from .T004***REMOVED******REMOVED***import ScalingoDeployer, FetchRepo
+from .T004***REMOVED******REMOVED***import Deployer, FetchRepo
 from datetime***REMOVED*** import datetime
 from zoneinfo***REMOVED*** import ZoneInfo
 from psycopg2.extras  import Json, DictConnection
@@ -71,7 +71,7 @@ class MainAPI(GitHub):
 ***REMOVED***def __init__(self, env, test: bool|None = None):
 ***REMOVED***self.conn = psycopg2.connect(env["APPY_DB_URL"], sslmode="require")
 ***REMOVED***super().__init__(env, self.conn)
-***REMOVED***self.commit = ScalingoDeployer()
+***REMOVED***self.commit = Deployer()
 ***REMOVED***#payload requerido na resposta recebida pelo user
 ***REMOVED***self.required = ["tw", "dt"]
 ***REMOVED***self.twcodes = [
@@ -106,7 +106,7 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED***
 ***REMOVED******REMOVED***method = data["dt"]["method"]
 ***REMOVED******REMOVED***if type(method) == str and method == "get":
-***REMOVED******REMOVED******REMOVED***return func[0]()
+***REMOVED******REMOVED******REMOVED***return func[0](data["dt"])
 ***REMOVED******REMOVED***elif type(method) == str and method == "post":
 ***REMOVED******REMOVED******REMOVED***return func[1](data["dt"])
 ***REMOVED******REMOVED***else:
@@ -137,11 +137,11 @@ class MainAPI(GitHub):
 ***REMOVED***def get(self, data: dict|None = None):
 ***REMOVED***try:
 ***REMOVED******REMOVED***cur = self.conn.cursor()
-***REMOVED******REMOVED***if data and "git_id" in data and data["git_id"]:
+***REMOVED******REMOVED***if data and "git_url" in data and data["git_url"]:
 ***REMOVED******REMOVED***cur.execute(
 ***REMOVED******REMOVED******REMOVED***"SELECT id, git_url, email, ssh_key, priv_key, password, created_at, heartbeat "
 ***REMOVED******REMOVED******REMOVED***"FROM accounts WHERE git_url = %s",
-***REMOVED******REMOVED******REMOVED***(data["git_id"],)
+***REMOVED******REMOVED******REMOVED***(data["git_url"],)
 ***REMOVED******REMOVED***
 ***REMOVED******REMOVED***else:
 ***REMOVED******REMOVED***cur.execute("SELECT id, git_url, email, ssh_key, priv_key, password, created_at, heartbeat FROM accounts")
@@ -169,7 +169,7 @@ class MainAPI(GitHub):
 ***REMOVED***def delete(self, data):
 ***REMOVED***try:
 ***REMOVED******REMOVED***cur = self.conn.cursor()
-***REMOVED******REMOVED***cur.execute("DELETE FROM accounts WHERE git_url= %s RETURNING id", (data["git"],))
+***REMOVED******REMOVED***cur.execute("DELETE FROM accounts WHERE git_url= %s RETURNING id", (data["git_url"],))
 ***REMOVED******REMOVED***deleted = cur.fetchone()
 ***REMOVED******REMOVED***self.conn.commit()
 ***REMOVED******REMOVED***if not deleted:
@@ -181,7 +181,7 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED***self.conn.rollback()
 ***REMOVED******REMOVED***return {"ok": False, "func_error": f"Retornou o erro: {str(e)}"}
 ***REMOVED***
-***REMOVED***def getpy(self):
+***REMOVED***def getpy(self, data=None):
 ***REMOVED***try:
 ***REMOVED******REMOVED***cur = self.conn.cursor()
 ***REMOVED******REMOVED***cur.execute("""
@@ -203,8 +203,7 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED***return {"ok": False, "func_error": "Nenhuma dado retornado em code...."}
 ***REMOVED******REMOVED***
 ***REMOVED******REMOVED***if not response["edit"]:
-***REMOVED******REMOVED***gg = self.get()["result"]
-***REMOVED******REMOVED***cur = self.conn.cursor()***REMOVED***
+***REMOVED******REMOVED***gg = self.get()["result"]  
 ***REMOVED******REMOVED***
 ***REMOVED******REMOVED***if len(gg) < 0 or len(gg) < int(response["amount"]):
 ***REMOVED******REMOVED******REMOVED***return {"ok": False, "func_error": f"AmountError: Poucos containers existentes..."}
@@ -227,15 +226,8 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED******REMOVED***"time": datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%Y-%m-%d %H:%M:%S")
 ***REMOVED******REMOVED******REMOVED***}
 ***REMOVED******REMOVED***} for i in random.sample(vms, k=int(response["amount"])))
-
-***REMOVED******REMOVED***cur = self.conn.cursor()
-***REMOVED******REMOVED***cur.execute("""
-***REMOVED******REMOVED******REMOVED***UPDATE container
-***REMOVED******REMOVED******REMOVED***SET code = %s
-***REMOVED******REMOVED******REMOVED***WHERE id = %s
-***REMOVED******REMOVED******REMOVED***""", (Json({"data": data}), "2b66698d-4995-410a-9a7d-3a462b25e323")
 ***REMOVED******REMOVED***
-***REMOVED******REMOVED***self.conn.commit()
+***REMOVED******REMOVED***self.uppy(data)
 ***REMOVED******REMOVED***return {"ok": True, "result": f"Sucess: Seu codigo estará rodando em {int(response["amount"])} containers!"}
 
 ***REMOVED******REMOVED***elif response["edit"]:
@@ -243,23 +235,24 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED***for vms in data[1:]:
 ***REMOVED******REMOVED******REMOVED***if response["change"]["id"] == vms["id"]:
 ***REMOVED******REMOVED******REMOVED***vms.update({"run": response["change"]["run"], "data": response["change"]["data"]})
-***REMOVED******REMOVED******REMOVED***
-***REMOVED******REMOVED******REMOVED***cur = self.conn.cursor()
-***REMOVED******REMOVED******REMOVED***cur.execute("""
-***REMOVED******REMOVED******REMOVED******REMOVED***UPDATE container
-***REMOVED******REMOVED******REMOVED******REMOVED***SET code = %s
-***REMOVED******REMOVED******REMOVED******REMOVED***WHERE id = %s
-***REMOVED******REMOVED******REMOVED******REMOVED***""", (Json({"data": data}), "2b66698d-4995-410a-9a7d-3a462b25e323")
-***REMOVED******REMOVED******REMOVED***
-***REMOVED******REMOVED******REMOVED***self.conn.commit()
-***REMOVED******REMOVED******REMOVED***
+***REMOVED******REMOVED******REMOVED***self.uppy(data)
 ***REMOVED******REMOVED******REMOVED***return {"ok": True, "result": f"Editado com sucesso! vmid: {response["change"]["id"]}"}
 
 ***REMOVED***except Exception as e:
 ***REMOVED******REMOVED***self.conn.rollback()
 ***REMOVED******REMOVED***return {"ok": False, "func_error": f"Retornou o erro: {str(e)}"}
+***REMOVED***
+***REMOVED***def uppy(self, data):
+***REMOVED***cur = self.conn.cursor()
+***REMOVED***cur.execute("""
+***REMOVED******REMOVED***UPDATE container
+***REMOVED******REMOVED***SET code = %s
+***REMOVED******REMOVED***WHERE id = %s
+***REMOVED******REMOVED***""", (Json({"data": data}), "2b66698d-4995-410a-9a7d-3a462b25e323")
+***REMOVED***
+***REMOVED***self.conn.commit()
 ***REMOVED******REMOVED***
-***REMOVED***def getgen(self):
+***REMOVED***def getgen(self, data):
 ***REMOVED***try:
 ***REMOVED******REMOVED***cur = self.conn.cursor()
 ***REMOVED******REMOVED***cur.execute("""
@@ -267,8 +260,15 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED***FROM container WHERE id = %s""", ("2b66698d-4995-410a-9a7d-3a462b25e323",)
 ***REMOVED******REMOVED***
 ***REMOVED******REMOVED***r = cur.fetchone()
+***REMOVED******REMOVED***
+***REMOVED******REMOVED***if data["verif"]:
+***REMOVED******REMOVED***data = r[0]["data"]
+***REMOVED******REMOVED***if data["info"]["request"] == data["info"]["created"]:
+***REMOVED******REMOVED******REMOVED***return {"ok": True, "result": f"Todos containers solicitados já criados!"}
+***REMOVED******REMOVED***
+***REMOVED******REMOVED***return {"ok": True, "result": f"{data["info"]["created"]} containers criados no momento."}
+***REMOVED******REMOVED***
 ***REMOVED******REMOVED***return {"ok": True, "result": r[0]}
-
 ***REMOVED***except Exception as e:
 ***REMOVED******REMOVED***self.conn.rollback()
 ***REMOVED******REMOVED***return {"ok": False, "func_error": f"Retornou o erro: {str(e)}"}
@@ -276,15 +276,16 @@ class MainAPI(GitHub):
 ***REMOVED***#Keys necessarias: "vms", "create" or "del" or "verif"
 ***REMOVED***def postgen(self, response: dict): 
 ***REMOVED***try:
-***REMOVED******REMOVED***if not self.getgen()["ok"] and not response["create"]:
+***REMOVED******REMOVED***if not self.getgen()["ok"] and response["del"]:
 ***REMOVED******REMOVED***return {"ok": False, "func_error": "Nenhuma dado retornado em gen...."}
 ***REMOVED******REMOVED***
-***REMOVED******REMOVED***if response["create"]:
+***REMOVED******REMOVED***if "create" in response and response["create"]:
+***REMOVED******REMOVED***revms = int(response["vms"])
 ***REMOVED******REMOVED***containers = [item["git_url"] for item in self.get()["result"]]
 ***REMOVED******REMOVED***data = {
 ***REMOVED******REMOVED******REMOVED***"create": True,
 ***REMOVED******REMOVED******REMOVED***"info": {
-***REMOVED******REMOVED******REMOVED***"request": int(response["vms"]),
+***REMOVED******REMOVED******REMOVED***"request": revms if revms > 0 else 1,
 ***REMOVED******REMOVED******REMOVED***"created": 0,
 ***REMOVED******REMOVED******REMOVED***"started": datetime.now(ZoneInfo("America/Sao_Paulo")).isoformat(sep=" ")
 ***REMOVED******REMOVED******REMOVED***},
@@ -294,7 +295,7 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED***self.upgen(data)
 ***REMOVED******REMOVED***return {"ok": True, "All": False, "result": f"Solicitada a criação de {response["vms"]} containers!"}
 ***REMOVED******REMOVED***
-***REMOVED******REMOVED***elif response["del"]:
+***REMOVED******REMOVED***elif "del" in response and response["del"]:
 ***REMOVED******REMOVED***data: dict = self.getgen()["result"]["data"]
 ***REMOVED******REMOVED***if data["info"]["request"] == data["info"]["created"]:
 ***REMOVED******REMOVED******REMOVED***data.update({"create": False, "finished": self.tempo(data["info"]["started"], datetime.now(ZoneInfo("America/Sao_Paulo")).isoformat(sep=" "))})
@@ -306,12 +307,6 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED***self.upgen(data)
 ***REMOVED******REMOVED***return {"ok": True, "All": False, "result": f"+1 container criado!"}
 ***REMOVED******REMOVED***
-***REMOVED******REMOVED***elif response["verif"]:
-***REMOVED******REMOVED***data = self.getgen()["result"]["data"]
-***REMOVED******REMOVED***if data["info"]["request"] == data["info"]["created"]:
-***REMOVED******REMOVED******REMOVED***return {"ok": True, "result": f"Todos containers solicitados já criados!"}
-***REMOVED******REMOVED***
-***REMOVED******REMOVED***return {"ok": True, "result": f"{data["info"]["created"]} containers criados no momento."}
 ***REMOVED******REMOVED***
 ***REMOVED***except Exception as e:
 ***REMOVED******REMOVED***self.conn.rollback()
@@ -333,7 +328,7 @@ class MainAPI(GitHub):
 ***REMOVED******REMOVED***cur.execute("""
 ***REMOVED******REMOVED***UPDATE accounts
 ***REMOVED******REMOVED***SET heartbeat = NOW()
-***REMOVED******REMOVED***WHERE git_url = %s""", (data["git"],)
+***REMOVED******REMOVED***WHERE git_url = %s""", (data["git_url"],)
 ***REMOVED******REMOVED***
 ***REMOVED******REMOVED***self.conn.commit()
 ***REMOVED******REMOVED***
