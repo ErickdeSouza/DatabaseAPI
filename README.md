@@ -58,7 +58,7 @@ caso enviado, retornaria:
 Este twcode retorna informações sobre uma ou todas rows da database.
 
 ```python
-body = {
+{
 ***REMOVED***"tw": 4,
 ***REMOVED***"dt": {  #dt aqui pode ser None ou um json.
 ***REMOVED***"git_url": "...", #está key não é obrigatória.
@@ -93,7 +93,7 @@ Response:
 Este twcode adicona uma nova row na database.
 
 ```python
-body = {
+{
 ***REMOVED***"tw": 5,
 ***REMOVED***"dt": {
 ***REMOVED***"git_url": "...",
@@ -122,7 +122,7 @@ Response:
 Este twcode remove alguma row específica da database.
 
 ```python
-body = {
+{
 ***REMOVED***"tw": 6,
 ***REMOVED***"dt": {
 ***REMOVED***"git_url": "..."
@@ -176,7 +176,7 @@ Este twcode sustenta o método de criação de novos containers
 Este método lida de editar/criar o json que lidará com a criação de novos containers.
 
 ```python
-body = {
+{
 ***REMOVED***"tw": 1,
 ***REMOVED***"dt": {
 ***REMOVED***"create": True,
@@ -205,7 +205,7 @@ Response:
 Este método retorna o json criado pelo método Postgen.
 
 ```python
-body = {
+{
 ***REMOVED***"tw": 1,
 ***REMOVED***"dt": {
 ***REMOVED***"verif": bool
@@ -255,7 +255,7 @@ Este twcode envia seu código python para sandbox dos containers.
 Este método retorna o resultado da sandbox do container.
 
 ```python
-body = {
+{
 ***REMOVED***"tw": 2,
 ***REMOVED***"dt": {
 ***REMOVED***"code": "..." # seu código ai.
@@ -285,7 +285,7 @@ Response:
 Este método retorna o resultado da sandbox do container.
 
 ```python
-body = {
+{
 ***REMOVED***"tw": 2,
 ***REMOVED***"dt": None
 }
