@@ -105,9 +105,9 @@ class MainAPI(GitHub):
                     return {"error": '"method" em falta em seu body.'}
                 
                 method = data["dt"]["method"]
-                if type(method) == str and method == "get":
+                if type(method) == str and method == "GET":
                     return func[0](data["dt"])
-                elif type(method) == str and method == "post":
+                elif type(method) == str and method == "POST":
                     return func[1](data["dt"])
                 else:
                     return {"error": '"method" só aceita "post" ou "get" no body.'}
