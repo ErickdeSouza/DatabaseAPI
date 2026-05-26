@@ -11,10 +11,10 @@ login = Token(envs)
 
 @app.websocket("/containers")
 async def websocket_endpoint(websocket: WebSocket):
-***REMOVED***if login.verify(websocket): 
-***REMOVED***await websocket.accept()
-***REMOVED***
-***REMOVED***while True:
-***REMOVED***data = await websocket.receive_json()
-***REMOVED***response = database.response(data)
-***REMOVED***await websocket.send_json(response)
+    if login.verify(websocket): 
+        await websocket.accept()
+
+    while True:
+        data = await websocket.receive_json()
+        response = database.response(data)
+        await websocket.send_json(response)
