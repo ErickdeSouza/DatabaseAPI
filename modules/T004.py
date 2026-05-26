@@ -1,211 +1,211 @@
-***REMOVED***
-***REMOVED***
-***REMOVED***
+from pathlib  import Path
+from git      import Repo
+import subprocess, tempfile, shutil, os, requests, zipfile, io
 
-***REMOVED***
-***REMOVED***
+BASE_DIR = Path(__file__).resolve().parent
+REPO_PATH = BASE_DIR / "commit"
 
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
+class Deployer:
+    def __init__(self):
+        self.temp_dir: Path | None = None
+        self.self_temp_dir: Path | None = None
 
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
+    def temp_ssh(self, comment="temp-deploy-key"):
+        self.temp_dir = Path(
+            tempfile.mkdtemp(dir=BASE_DIR / "ssh", prefix="sshkey_")
+        )
 
-***REMOVED***
-***REMOVED***
-***REMOVED***
-
-
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***"ssh-keyscan", "ssh.osc-fr1.scalingo.com"],
-***REMOVED******REMOVED***stdout=known_hosts.open("w"),
-***REMOVED******REMOVED***stderr=subprocess.DEVNULL,
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***public_key = key_path.with_suffix(".pub").read_text(encoding="utf-8")
-***REMOVED***private_key = key_path.read_text(encoding="utf-8")
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***return public_key, private_key, key_path, known_hosts
-***REMOVED***
-***REMOVED***def temp_ssh_update(self, priv, pub):
-***REMOVED***self.self_temp_dir = Path(
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***key_path = self.self_temp_dir / "id_ed25519"
-***REMOVED***known_hosts = self.self_temp_dir / "known_hosts"
-***REMOVED***public_key_path = self.self_temp_dir / "id_ed25519.pub"
-***REMOVED***
-***REMOVED***key_path.write_text(priv, encoding="utf-8")
-***REMOVED***public_key_path.write_text(pub, encoding="utf-8")
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***"ssh-keyscan", "ssh.osc-fr1.scalingo.com"],
-***REMOVED******REMOVED***stdout=known_hosts.open("w"),
-***REMOVED******REMOVED***stderr=subprocess.DEVNULL,
-***REMOVED***
-***REMOVED***
-***REMOVED***
-***REMOVED***return key_path, known_hosts, self.self_temp_dir
-***REMOVED***
-***REMOVED***def git_push_holder(
-***REMOVED***self,
-***REMOVED***key_path: Path,
-***REMOVED***known_hosts: Path,
-***REMOVED***remote_name: str,
-***REMOVED***remote_url: str,
-***REMOVED***branch: str,
-***REMOVED***commit_message: str,
-***REMOVED***temp_dir = None
-***REMOVED***):
-***REMOVED***if not temp_dir:
-***REMOVED******REMOVED***temp_dir = self.temp_dir
-
-***REMOVED***try:
-***REMOVED******REMOVED***repo = Repo.init(REPO_PATH)
-
-***REMOVED******REMOVED***ssh_cmd = (
-***REMOVED******REMOVED***f"ssh -i {key_path.as_posix()} "
-***REMOVED******REMOVED***"-o IdentitiesOnly=yes "
-***REMOVED******REMOVED***"-o StrictHostKeyChecking=no "
-***REMOVED******REMOVED***f"-o UserKnownHostsFile={known_hosts.as_posix()}"
-***REMOVED******REMOVED***
-
-***REMOVED******REMOVED***# força git usar esse ssh
-***REMOVED******REMOVED***repo.git.config(
-***REMOVED******REMOVED***"--local",
-***REMOVED******REMOVED***"--add",
-***REMOVED******REMOVED***"core.sshCommand",
-***REMOVED******REMOVED***ssh_cmd,
-***REMOVED******REMOVED***
-
-***REMOVED******REMOVED***for r in list(repo.remotes):
-***REMOVED******REMOVED***repo.delete_remote(r)
-
-***REMOVED******REMOVED***repo.create_remote(remote_name, remote_url)
+        key_path = self.temp_dir / "id_ed25519"
+        known_hosts = self.temp_dir / "known_hosts"
+        public_key_path = self.temp_dir / "id_ed25519.pub"
 
 
-***REMOVED******REMOVED***repo.git.add(A=True)
-***REMOVED******REMOVED***
-***REMOVED******REMOVED***repo.index.commit(commit_message)
+        subprocess.run(
+            [
+                "ssh-keygen",
+                "-t", "ed25519",
+                "-f", str(key_path),
+                "-N", "",
+                "-C", comment,
+            ],
+            check=True,
+        )
 
-***REMOVED******REMOVED***try:
-***REMOVED******REMOVED***repo.git.fetch("--unshallow")
-***REMOVED******REMOVED***except Exception:
-***REMOVED******REMOVED***pass
+        os.chmod(key_path, 0o600)
+        os.chmod(public_key_path, 0o644)
+        
+        subprocess.run(
+            ["ssh-keyscan", "ssh.osc-fr1.scalingo.com"],
+            stdout=known_hosts.open("w"),
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+        
+        public_key = key_path.with_suffix(".pub").read_text(encoding="utf-8")
+        private_key = key_path.read_text(encoding="utf-8")
+        
+        
+        
+        return public_key, private_key, key_path, known_hosts
+    
+    def temp_ssh_update(self, priv, pub):
+        self.self_temp_dir = Path(
+            tempfile.mkdtemp(dir=BASE_DIR / "ssh", prefix="sshkey_")
+        )
+        
+        key_path = self.self_temp_dir / "id_ed25519"
+        known_hosts = self.self_temp_dir / "known_hosts"
+        public_key_path = self.self_temp_dir / "id_ed25519.pub"
+        
+        key_path.write_text(priv, encoding="utf-8")
+        public_key_path.write_text(pub, encoding="utf-8")
+        
+        os.chmod(key_path, 0o600)
+        os.chmod(public_key_path, 0o644)
+        
+        subprocess.run(
+            ["ssh-keyscan", "ssh.osc-fr1.scalingo.com"],
+            stdout=known_hosts.open("w"),
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+        
+        return key_path, known_hosts, self.self_temp_dir
+        
+    def git_push_holder(
+        self,
+        key_path: Path,
+        known_hosts: Path,
+        remote_name: str,
+        remote_url: str,
+        branch: str,
+        commit_message: str,
+        temp_dir = None
+    ):
+        if not temp_dir:
+            temp_dir = self.temp_dir
 
-***REMOVED******REMOVED***repo.git.push(
-***REMOVED******REMOVED***"--force",
-***REMOVED******REMOVED***remote_name,
-***REMOVED******REMOVED***f"HEAD:{branch}",
-***REMOVED******REMOVED***
+        try:
+            repo = Repo.init(REPO_PATH)
 
-***REMOVED******REMOVED***print("pushado com sucesso!")
+            ssh_cmd = (
+                f"ssh -i {key_path.as_posix()} "
+                "-o IdentitiesOnly=yes "
+                "-o StrictHostKeyChecking=no "
+                f"-o UserKnownHostsFile={known_hosts.as_posix()}"
+            )
 
-***REMOVED***finally:
-***REMOVED******REMOVED***if temp_dir and temp_dir.exists():
-***REMOVED******REMOVED***shutil.rmtree(temp_dir, ignore_errors=True)
-***REMOVED******REMOVED***
-***REMOVED***def git_push(self, key_path: Path, known_hosts: Path, remote_name: str, remote_url: str, branch: str = "master", commit_message: str = "fvck yall"):
-***REMOVED***self.git_push_holder(key_path, known_hosts, remote_name, remote_url, branch, commit_message)
-***REMOVED***
-***REMOVED***def self_git_push(self, data, remote_name: str = "production", branch: str = "master", commit_message: str = "fvck yall"):
-***REMOVED***key_path, known_hosts = self.temp_ssh_update(data["priv_key"], data["ssh_key"])
-***REMOVED***self.git_push_holder(key_path, known_hosts, remote_name, data["git_url"], branch, commit_message, self.self_temp_dir)
+            # força git usar esse ssh
+            repo.git.config(
+                "--local",
+                "--add",
+                "core.sshCommand",
+                ssh_cmd,
+            )
 
-***REMOVED***def del_ssh(self):
-***REMOVED***if self.temp_dir and self.temp_dir.exists():
-***REMOVED******REMOVED***shutil.rmtree(self.temp_dir, ignore_errors=True)
-***REMOVED******REMOVED***
+            for r in list(repo.remotes):
+                repo.delete_remote(r)
 
-***REMOVED***
-***REMOVED***def __init__(self, env):
-***REMOVED***self.api_clone_repo(
-***REMOVED******REMOVED***token=env["APPY_GIT_TOKEN"],
-***REMOVED******REMOVED***owner="ErickdeSouza",
-***REMOVED******REMOVED***repo="Private-container",
-***REMOVED******REMOVED***dest_folder=REPO_PATH
-***REMOVED***
+            repo.create_remote(remote_name, remote_url)
 
-***REMOVED***def api_clone_repo(
-***REMOVED***self,
-***REMOVED***token,
-***REMOVED***owner,
-***REMOVED***repo,
-***REMOVED***dest_folder: Path,
-***REMOVED***branch="main"
-***REMOVED***):
-***REMOVED***url = f"https://api.github.com/repos/{owner}/{repo}/zipball/{branch}"
 
-***REMOVED***headers = {
-***REMOVED******REMOVED***"Authorization": f"Bearer {token}",
-***REMOVED******REMOVED***"Accept": "application/vnd.github+json"
-***REMOVED***}
+            repo.git.add(A=True)
+            
+            repo.index.commit(commit_message)
 
-***REMOVED***response = requests.get(url, headers=headers)
-***REMOVED***response.raise_for_status()
+            try:
+                repo.git.fetch("--unshallow")
+            except Exception:
+                pass
 
-***REMOVED***temp_extract_path = dest_folder.parent / f"{dest_folder.name}_temp"
+            repo.git.push(
+                "--force",
+                remote_name,
+                f"HEAD:{branch}",
+            )
 
-***REMOVED***if temp_extract_path.exists():
-***REMOVED******REMOVED***shutil.rmtree(temp_extract_path)
+            print("pushado com sucesso!")
 
-***REMOVED***temp_extract_path.mkdir(parents=True, exist_ok=True)
+        finally:
+            if temp_dir and temp_dir.exists():
+                shutil.rmtree(temp_dir, ignore_errors=True)
+                
+    def git_push(self, key_path: Path, known_hosts: Path, remote_name: str, remote_url: str, branch: str = "master", commit_message: str = "fvck yall"):
+        self.git_push_holder(key_path, known_hosts, remote_name, remote_url, branch, commit_message)
+        
+    def self_git_push(self, data, remote_name: str = "production", branch: str = "master", commit_message: str = "fvck yall"):
+        key_path, known_hosts = self.temp_ssh_update(data["priv_key"], data["ssh_key"])
+        self.git_push_holder(key_path, known_hosts, remote_name, data["git_url"], branch, commit_message, self.self_temp_dir)
 
-***REMOVED***with zipfile.ZipFile(io.BytesIO(response.content)) as z:
-***REMOVED******REMOVED***z.extractall(temp_extract_path)
+    def del_ssh(self):
+        if self.temp_dir and self.temp_dir.exists():
+            shutil.rmtree(self.temp_dir, ignore_errors=True)
+            
 
-***REMOVED***inner_folder = next(temp_extract_path.iterdir())
+class FetchRepo:
+    def __init__(self, env):
+        self.api_clone_repo(
+            token=env["APPY_GIT_TOKEN"],
+            owner="ErickdeSouza",
+            repo="Private-container",
+            dest_folder=REPO_PATH
+        )
 
-***REMOVED***if dest_folder.exists():
-***REMOVED******REMOVED***shutil.rmtree(dest_folder)
+    def api_clone_repo(
+        self,
+        token,
+        owner,
+        repo,
+        dest_folder: Path,
+        branch="main"
+    ):
+        url = f"https://api.github.com/repos/{owner}/{repo}/zipball/{branch}"
 
-***REMOVED***shutil.move(str(inner_folder), str(dest_folder))
-***REMOVED***shutil.rmtree(temp_extract_path)
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json"
+        }
 
-***REMOVED***git_folder = dest_folder / ".git"
-***REMOVED***if git_folder.exists():
-***REMOVED******REMOVED***shutil.rmtree(git_folder)
-***REMOVED******REMOVED***
-***REMOVED***for filename in ["Aptfile", ".buildpacks"]:
-***REMOVED******REMOVED***file_path = dest_folder / filename
-***REMOVED******REMOVED***if file_path.exists():
-***REMOVED******REMOVED***if file_path.is_dir():
-***REMOVED******REMOVED******REMOVED***shutil.rmtree(file_path)
-***REMOVED******REMOVED***else:
-***REMOVED******REMOVED******REMOVED***file_path.unlink()
-***REMOVED******REMOVED******REMOVED***
-***REMOVED***b = requests.get("https://raw.githubusercontent.com/ErickdeSouza/easy/refs/heads/main/buildpack").text
-***REMOVED***l = requests.get("https://raw.githubusercontent.com/ErickdeSouza/easy/refs/heads/main/libs").text
-***REMOVED***
-***REMOVED***with open(dest_folder / "Aptfile", "w", encoding="utf-8") as f:
-***REMOVED******REMOVED***for i in l.splitlines():
-***REMOVED******REMOVED***f.write(i + "\n")
-***REMOVED******REMOVED***
-***REMOVED***with open(dest_folder / ".buildpacks", "w", encoding="utf-8") as f:
-***REMOVED******REMOVED***for i in b.splitlines():
-***REMOVED******REMOVED***f.write(i + "\n")
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+
+        temp_extract_path = dest_folder.parent / f"{dest_folder.name}_temp"
+
+        if temp_extract_path.exists():
+            shutil.rmtree(temp_extract_path)
+
+        temp_extract_path.mkdir(parents=True, exist_ok=True)
+
+        with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+            z.extractall(temp_extract_path)
+
+        inner_folder = next(temp_extract_path.iterdir())
+
+        if dest_folder.exists():
+            shutil.rmtree(dest_folder)
+
+        shutil.move(str(inner_folder), str(dest_folder))
+        shutil.rmtree(temp_extract_path)
+
+        git_folder = dest_folder / ".git"
+        if git_folder.exists():
+            shutil.rmtree(git_folder)
+            
+        for filename in ["Aptfile", ".buildpacks"]:
+            file_path = dest_folder / filename
+            if file_path.exists():
+                if file_path.is_dir():
+                    shutil.rmtree(file_path)
+                else:
+                    file_path.unlink()
+                    
+        b = requests.get("https://raw.githubusercontent.com/ErickdeSouza/easy/refs/heads/main/buildpack").text
+        l = requests.get("https://raw.githubusercontent.com/ErickdeSouza/easy/refs/heads/main/libs").text
+        
+        with open(dest_folder / "Aptfile", "w", encoding="utf-8") as f:
+            for i in l.splitlines():
+                f.write(i + "\n")
+                
+        with open(dest_folder / ".buildpacks", "w", encoding="utf-8") as f:
+            for i in b.splitlines():
+                f.write(i + "\n")
