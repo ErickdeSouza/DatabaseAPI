@@ -155,11 +155,11 @@ class MainAPI(GitHub):
                     "ssh_key": r[3] if data and data["arg"] else None,
                     "priv_key": r[4] if data and data["arg"] else None,
                     "password": r[5],
-                    "time": r[6],
-                    "heartbeat": r[7]
+                    "time": str(r[6]),
+                    "heartbeat": str(r[7])
                 } for r in rows],
                 "commit": git["commit"]["message"] if git else None,
-                "lastrepo": git["commit"]["committer"]["date"] if git else None
+                "lastrepo": str(git["commit"]["committer"]["date"]) if git else None
             }
 
         except Exception as e:
