@@ -36,10 +36,10 @@ Está API funciona semelhante a mesma API em websockets do app "Discord". Exempl
 ```python
 # Exemplo básico de body a ser enviada para API. Aqui estamos utilizando o heartbeat.
 {
-***REMOVED***"tw": 3,
-***REMOVED***"dt": {
-***REMOVED***"git_url": "..."
-***REMOVED***}
+"tw": 3,
+    "dt": {
+        "git_url": "..."
+    }
 }
 ```
 
@@ -47,10 +47,10 @@ caso enviado, retornaria:
 
 ```python
 {
-***REMOVED***"tw": 0,
-***REMOVED***"dt": {
-***REMOVED***"ok": True
-***REMOVED***}
+    "tw": 0,
+    "dt": {
+        "ok": True
+    }
 }
 ```
 - ## Get (twcode 4) <a id = "api-4"></a>
@@ -59,11 +59,11 @@ Este twcode retorna informações sobre uma ou todas rows da database.
 
 ```python
 {
-***REMOVED***"tw": 4,
-***REMOVED***"dt": {  #dt aqui pode ser None ou um json.
-***REMOVED***"git_url": "...", #está key não é obrigatória.
-***REMOVED***"arg": True  #ou False. Está é obrigatória caso "dt" seja um json.
-***REMOVED***}
+    "tw": 4,
+    "dt": {  #dt aqui pode ser None ou um json.
+        "git_url": "...", #está key não é obrigatória.
+        "arg": True  #ou False. Está é obrigatória caso "dt" seja um json.
+    }
 }
 ```
 
@@ -71,20 +71,20 @@ Response:
 
 ```python
 {
-***REMOVED***"tw": 0,
-***REMOVED***"dt": {
-***REMOVED***"ok": True, 
-***REMOVED***"result": list({
-***REMOVED******REMOVED***"id": "...",
-***REMOVED******REMOVED***"git_url":"...",
-***REMOVED******REMOVED***"email": "...",
-***REMOVED******REMOVED***"ssh_key": "...", # ou None. Depende do seu "arg" no body.
-***REMOVED******REMOVED***"priv_key":"...", # ou None. Depende do seu "arg" no body.
-***REMOVED******REMOVED***"password":"...",
-***REMOVED******REMOVED***"time": "...",
-***REMOVED******REMOVED***"heartbeat": "..."
-***REMOVED***})
-***REMOVED***}
+    "tw": 0,
+    "dt": {
+        "ok": True, 
+        "result": list({
+            "id": "...",
+            "git_url":"...",
+            "email": "...",
+            "ssh_key": "...", # ou None. Depende do seu "arg" no body.
+            "priv_key":"...", # ou None. Depende do seu "arg" no body.
+            "password":"...",
+            "time": "...",
+            "heartbeat": "..."
+        })
+    }
 }
 ```
 
@@ -94,14 +94,14 @@ Este twcode adicona uma nova row na database.
 
 ```python
 {
-***REMOVED***"tw": 5,
-***REMOVED***"dt": {
-***REMOVED***"git_url": "...",
-***REMOVED***"ssh_key": "...",
-***REMOVED***"priv_key": "...",
-***REMOVED***"email": "...", 
-***REMOVED***"password": "...",
-***REMOVED***}
+    "tw": 5,
+    "dt": {
+        "git_url": "...",
+        "ssh_key": "...",
+        "priv_key": "...",
+        "email": "...", 
+        "password": "...",
+    }
 }
 ```
 
@@ -109,11 +109,11 @@ Response:
 
 ```python
 {
-***REMOVED***"tw": 0,
-***REMOVED***"dt": {
-***REMOVED***"ok": True, 
-***REMOVED***"id": "..." #id referente a row criada na database.
-***REMOVED***}
+    "tw": 0,
+    "dt": {
+        "ok": True, 
+        "id": "..." #id referente a row criada na database.
+    }
 }
 ```
 
@@ -123,10 +123,10 @@ Este twcode remove alguma row específica da database.
 
 ```python
 {
-***REMOVED***"tw": 6,
-***REMOVED***"dt": {
-***REMOVED***"git_url": "..."
-***REMOVED***}
+    "tw": 6,
+    "dt": {
+        "git_url": "..."
+    }
 }
 ```
 
@@ -134,11 +134,11 @@ Response:
 
 ```python
 {
-***REMOVED***"tw": 0,
-***REMOVED***"dt": {
-***REMOVED***"ok": True, 
-***REMOVED***"id": "..." #id referente a row deletada na database.
-***REMOVED***}
+    "tw": 0,
+    "dt": {
+        "ok": True, 
+        "id": "..." #id referente a row deletada na database.
+    }
 }
 ```
 
@@ -148,10 +148,10 @@ Este twcode fica responsável por enviar um timestamp à row do container seleci
 
 ```python
 {
-***REMOVED***"tw": 3,
-***REMOVED***"dt": {
-***REMOVED***"git_url": "..."
-***REMOVED***}
+    "tw": 3,
+        "dt": {
+        "git_url": "..."
+    }
 }
 ```
 
@@ -159,10 +159,10 @@ Response:
 
 ```python
 {
-***REMOVED***"tw": 0,
-***REMOVED***"dt": {
-***REMOVED***"ok": True
-***REMOVED***}
+    "tw": 0,
+        "dt": {
+        "ok": True
+    }
 }
 ```
 
@@ -177,11 +177,12 @@ Este método lida de editar/criar o json que lidará com a criação de novos co
 
 ```python
 {
-***REMOVED***"tw": 1,
-***REMOVED***"dt": {
-***REMOVED***"create": True,
-***REMOVED***"vms": int, #números de containers a ser criado
-***REMOVED***}
+    "tw": 1,
+    "dt": {
+        "method": "POST",
+        "create": True,
+        "vms": int, #números de containers a ser criado
+    }
 }
 ```
 
@@ -189,14 +190,12 @@ Response:
 
 ```python
 {
-***REMOVED***"tw": 0,
-***REMOVED***"dt": {
-***REMOVED***{
-***REMOVED******REMOVED***"ok": True,
-***REMOVED******REMOVED***"All": False,
-***REMOVED******REMOVED***"result": "Solicitada a criação de ... containers!"
-***REMOVED***}
-***REMOVED***}
+    "tw": 0,
+    "dt": {
+        "ok": True,
+        "All": False,
+        "result": "Solicitada a criação de ... containers!"
+    }
 }
 ```
 
@@ -206,10 +205,11 @@ Este método retorna o json criado pelo método Postgen.
 
 ```python
 {
-***REMOVED***"tw": 1,
-***REMOVED***"dt": {
-***REMOVED***"verif": bool
-***REMOVED***}
+    "tw": 1,
+    "dt": {
+        "method": "GET",
+        "verif": bool
+    }
 }
 ```
 
@@ -217,21 +217,21 @@ Response caso o "verif" `False`:
 
 ```python
 {
-***REMOVED***"tw": 0,
-***REMOVED***"dt": {
-***REMOVED***"ok": True, 
-***REMOVED***"result": {
-***REMOVED******REMOVED***"data": {
-***REMOVED******REMOVED***"create": bool,
-***REMOVED******REMOVED***"finished": "...",
-***REMOVED******REMOVED***"info": {
-***REMOVED******REMOVED******REMOVED***"created": int,
-***REMOVED******REMOVED******REMOVED***"request": int,
-***REMOVED******REMOVED******REMOVED***"started": timestamp
-***REMOVED******REMOVED***}
-***REMOVED******REMOVED***}
-***REMOVED***}
-***REMOVED***}
+    "tw": 0,
+    "dt": {
+        "ok": True, 
+        "result": {
+            "data": {
+                "create": bool,
+                "finished": "...",
+                "info": {
+                    "created": int,
+                    "request": int,
+                    "started": timestamp
+                }
+            }
+        }
+    }
 }
 ```
 
@@ -239,11 +239,11 @@ Response caso o "verif" `True`:
 
 ```python
 {
-***REMOVED***"tw": 0,
-***REMOVED***"dt": {
-***REMOVED***"ok": True, 
-***REMOVED***"result": "... containers criados no momento." # Ou "Todos containers solicitados já criados!"
-***REMOVED***}
+    "tw": 0,
+    "dt": {
+        "ok": True, 
+        "result": "... containers criados no momento." # Ou "Todos containers solicitados já criados!"
+    }
 }
 ```
 - ## Getpy/Postpy (twcode 2) <a id = "api-2"></a>
@@ -256,13 +256,14 @@ Este método retorna o resultado da sandbox do container.
 
 ```python
 {
-***REMOVED***"tw": 2,
-***REMOVED***"dt": {
-***REMOVED***"code": "..." # seu código ai.
-***REMOVED***"package": "..." #suas packages. Pode ser None tambem.
-***REMOVED***"amount": int,
-***REMOVED***"edit": None,
-***REMOVED***}
+    "tw": 2,
+    "dt": {
+        "method": "POST",
+        "code": "..." # seu código ai.
+        "package": "..." #suas packages. Pode ser None tambem.
+        "amount": int,
+        "edit": None,
+    }
 }
 ```
 
@@ -270,13 +271,11 @@ Response:
 
 ```python
 {
-***REMOVED***"tw": 0,
-***REMOVED***"dt": {
-***REMOVED***{
-***REMOVED***"ok": True, 
-***REMOVED******REMOVED***"result": "Sucess: Seu codigo estará rodando em ... containers!"
-***REMOVED***}
-***REMOVED***}
+    "tw": 0,
+    "dt": {
+        "ok": True, 
+        "result": "Sucess: Seu codigo estará rodando em ... containers!"
+    }
 }
 ```
 
@@ -286,8 +285,10 @@ Este método retorna o resultado da sandbox do container.
 
 ```python
 {
-***REMOVED***"tw": 2,
-***REMOVED***"dt": None
+    "tw": 2,
+    "dt": {
+        "method": "GET"
+    }
 }
 ```
 
@@ -295,10 +296,10 @@ Response:
 
 ```python
 {
-***REMOVED***"tw": 0,
-***REMOVED***"dt": {
-***REMOVED***"ok": True, 
-***REMOVED***"result": {...}
-***REMOVED***}
+    "tw": 0,
+    "dt": {
+        "ok": True, 
+        "result": {...}
+    }
 }
 ```
