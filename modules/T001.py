@@ -199,10 +199,11 @@ class MainAPI(GitHub):
     #Keys necessarias: "edit", "code", "amount", "package" or "change"      
     def postpy(self, response: dict, vms: list = [], data: list = []): 
         try:
-            if not self.getpy()["ok"] and response["edit"]:
-                return {"ok": False, "func_error": "Nenhuma dado retornado em code...."}
+            ok = self.getpy()["ok"]
+            code = ("edit" not in response or not response["edit"]) and ok
+            edit = ("edit" in response and response["edit"]) and ok
             
-            if not response["edit"]:
+            if code:
                 gg = self.get()["result"]  
                 
                 if len(gg) < 0 or len(gg) < int(response["amount"]):
@@ -230,7 +231,7 @@ class MainAPI(GitHub):
                 self.uppy(data)
                 return {"ok": True, "result": f"Sucess: Seu codigo estará rodando em {int(response["amount"])} containers!"}
 
-            elif response["edit"]:
+            elif edit:
                 data = self.getpy()["result"]["data"]
                 for vms in data[1:]:
                     if response["change"]["id"] == vms["id"]:
@@ -276,10 +277,11 @@ class MainAPI(GitHub):
     #Keys necessarias: "vms", "create" or "del" or "verif"
     def postgen(self, response: dict): 
         try:
-            if not self.getgen()["ok"] and response["del"]:
-                return {"ok": False, "func_error": "Nenhuma dado retornado em gen...."}
+            ok = self.getpy()["ok"]
+            create = ("create" in response and response["create"]) and ok
+            dele = ("del" in response and response["del"]) and ok
             
-            if "create" in response and response["create"]:
+            if create:
                 revms = int(response["vms"])
                 containers = [item["git_url"] for item in self.get()["result"]]
                 data = {
@@ -295,7 +297,7 @@ class MainAPI(GitHub):
                 self.upgen(data)
                 return {"ok": True, "All": False, "result": f"Solicitada a criação de {response["vms"]} containers!"}
                 
-            elif "del" in response and response["del"]:
+            elif dele:
                 data: dict = self.getgen()["result"]["data"]
                 if data["info"]["request"] == data["info"]["created"]:
                     data.update({"create": False, "finished": self.tempo(data["info"]["started"], datetime.now(ZoneInfo("America/Sao_Paulo")).isoformat(sep=" "))})
@@ -307,7 +309,9 @@ class MainAPI(GitHub):
                 self.upgen(data)
                 return {"ok": True, "All": False, "result": f"+1 container criado!"}
             
-            
+            else:
+                return {"ok": False, "func_error": "Nenhuma dado retornado em gen...."}
+                        
         except Exception as e:
             self.conn.rollback()
             return {"ok": False, "func_error": f"Retornou o erro: {str(e)}"}
