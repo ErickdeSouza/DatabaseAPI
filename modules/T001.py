@@ -217,17 +217,21 @@ class MainAPI(GitHub):
                     "package": base64.b64encode(response["package"].encode("utf-8")).decode("utf-8") if response["package"] else None
                 })
 
-                data.append({
-                    "id": "vm_" + i.split(".com:")[1].split(".git")[0],
-                    "git": i,
-                    "run": False,
-                    "data": {
-                        "error": False,
-                        "result": "Aguardando resposta....",
-                        "time": datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%Y-%m-%d %H:%M:%S")
+                data.extend([
+                    {
+                        "id": "vm_" + i.split(".com:")[1].split(".git")[0],
+                        "git": i,
+                        "run": False,
+                        "data": {
+                            "error": False,
+                            "result": "Aguardando resposta....",
+                            "time": datetime.now(
+                                ZoneInfo("America/Sao_Paulo")
+                            ).strftime("%Y-%m-%d %H:%M:%S")
+                        }
                     }
-                } for i in random.sample(vms, k=int(response["amount"])))
-                
+                    for i in random.sample(vms, k=int(response["amount"]))
+                ])
                 self.uppy(data)
                 return {"ok": True, "result": f"Sucess: Seu codigo estará rodando em {int(response["amount"])} containers!"}
 
