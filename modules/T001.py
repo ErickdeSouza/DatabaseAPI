@@ -3,7 +3,7 @@ from .T004            import Deployer, FetchRepo
 from datetime         import datetime
 from zoneinfo         import ZoneInfo
 from psycopg2.extras  import Json, DictConnection
-import time, psycopg2, random, base64, threading, requests, json
+import time, psycopg2, random, base64, threading, requests
 
 
 
@@ -113,7 +113,7 @@ class MainAPI(GitHub):
                     return {"error": '"method" só aceita "post" ou "get" no body.'}
                 
     def response(self, data):
-        resp = self.manager(json.loads(data))
+        resp = self.manager(data)
         if not resp:
             return {"tw": 67, "dt": {"error": 'Alguma coisa deu errado...'}}
         return {"tw": 0, "dt": resp}
